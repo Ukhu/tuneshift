@@ -1,0 +1,50 @@
+@import url('https://fonts.googleapis.com/css2?family=Paytone+One&display=swap');
+
+.header {
+	display: flex;
+	height: 10vh;
+	width: 100vw;
+	background-color: rgba(0, 0, 0, 1);
+	padding: 0 10vw;
+	align-items: center;
+	justify-content: space-between;
+	border-bottom: 2px solid #FF3056;
+}
+  
+.header__logo {
+	font-weight: bold;
+	font-family: 'Paytone One', sans-serif;
+	color: #ffffff;
+	margin: 0;
+	font-size: 3vh;
+}
+
+.header__logo-span {
+	color: #FF3056;
+}
+
+.header__socials {
+	color: white;
+	min-width: 5vw;
+	font-size: 2vh;
+}
+
+.fa-github {
+	margin-left: 2vw
+}
+
+.header__menu {
+	display: none;
+	color: white;
+	font-size: 2vh;
+}
+
+@media (max-width: 700px) {
+	.header__socials {
+		display: none;
+	}
+
+	.header__menu {
+		display: inline;
+	}
+}
