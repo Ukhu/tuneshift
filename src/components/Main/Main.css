@@ -1,0 +1,83 @@
+@import url('https://fonts.googleapis.com/css2?family=Poiret+One&display=swap');
+
+.main {
+	margin: 0 auto;
+	max-width: 80vw;
+	height: 90vh;
+	padding-top: 10vmin;
+}
+
+.main__title {
+	font-size: 6vh;
+	font-family: 'Poiret One', cursive;
+	font-weight: bold;
+	margin-bottom: 5vh;
+}
+
+.main__title-brands {
+	font-family: 'Paytone One', sans-serif;
+	color: #616467;
+	font-size: 7vh;
+}
+
+.main__mini-form {
+	display: flex;
+	height: 6vh;
+}
+
+.main__input {
+	flex-grow: 2;
+	height: 100%;
+	padding-left: 3vmin;
+	font-size: 2vh;
+	font-family: 'Poiret One', cursive;
+	border: 1px solid #7F7F7F;
+	border-top-left-radius: 50px;
+	border-bottom-left-radius: 50px;
+	outline: none;
+}
+
+.main__input:focus, .main__input:hover {
+	border-color: #000000;
+}
+
+.main__button {
+	flex-grow: 1;
+	height: 100%;
+	font-size: 2vh;
+	font-family: 'Paytone One', sans-serif;
+	background-color: #1DB954;
+	color: #ffffff;
+	border: 1px solid #1DB954;
+	border-top-right-radius: 50px;
+	border-bottom-right-radius: 50px;
+	outline: none;
+}
+
+.main__button:focus, .main__button:hover {
+	background-color: #1BD760;
+	border-color: #1BD760;
+}
+
+@media screen and (min-width: 1050px) {
+	.main {
+		max-width: 60vw;
+	}
+}
+
+@media screen and (max-width: 467px) {
+	.main__mini-form {
+		flex-wrap: wrap;
+	}
+
+	.main__input {
+		border-radius: 50px;
+		padding-left: 5vmin;
+	}
+
+	.main__button {
+		width: 100%;
+		border-radius: 50px;
+		margin-top: 3vw;
+	}
+}
