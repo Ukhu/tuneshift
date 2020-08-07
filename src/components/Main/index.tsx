@@ -1,4 +1,5 @@
 import React from 'react';
+import PlaylistCard from '../PlaylistCard';
 import './Main.css';
 
 function Main(): JSX.Element {
@@ -9,6 +10,7 @@ function Main(): JSX.Element {
 				<input className="main__input" type="text" name="playlist-input" placeholder="enter playlist url here..."/>
 				<button className="main__button" type="submit">GET SONGS</button>
 			</div>
+			<PlaylistCard />
 		</div>
 	)
 }
