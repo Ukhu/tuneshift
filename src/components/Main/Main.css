@@ -22,12 +22,12 @@
 
 .main__mini-form {
 	display: flex;
-	height: 6vh;
+	height: fit-content;
 }
 
 .main__input {
 	flex-grow: 2;
-	height: 100%;
+	height: 6vh;
 	padding-left: 3vmin;
 	font-size: 2vh;
 	font-family: 'Poiret One', cursive;
@@ -43,7 +43,7 @@
 
 .main__button {
 	flex-grow: 1;
-	height: 100%;
+	height: 6vh;
 	font-size: 2vh;
 	font-family: 'Paytone One', sans-serif;
 	background-color: #1DB954;
@@ -57,6 +57,11 @@
 .main__button:focus, .main__button:hover {
 	background-color: #1BD760;
 	border-color: #1BD760;
+}
+
+.main__button:disabled {
+	background-color: #61646780;
+	border-color: #61646780;
 }
 
 @media screen and (min-width: 1050px) {

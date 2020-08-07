@@ -1,0 +1,80 @@
+.playlist-card {
+  display: flex;
+  width: 70%;
+  margin: 5vh auto;
+  flex-wrap: wrap;
+  border-radius: 10px;
+  min-width: fit-content;
+  box-shadow: 5px 5px 20px #7F7F7F;
+}
+
+.playlist-card__image {
+  width: 300px;
+  height: 300px;
+  flex-grow: 1;
+  background-color: black;
+  object-fit: contain;
+}
+
+.playlist-card__details {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 3vmin;
+  min-width: calc(100% - 300px);
+  height: 300px;
+}
+
+.playlist-card__provider {
+  font-family: 'Paytone One', sans-serif;
+  color: #616467;
+  font-size: 3vh;
+}
+
+.fa-spotify {
+  font-size: 4vh;
+  margin-right: 7px;
+}
+
+.playlist-card__attributes {
+  display: flex;
+  height: 50%;
+  flex-flow: column;
+  justify-content: space-around;
+}
+
+.playlist-card__properties {
+  font-family: 'Poiret One', cursive;
+}
+
+.playlist-card__value {
+  font-family: 'Paytone One', sans-serif;
+  width: 30%;
+}
+
+.playlist-card__convert-button {
+  height: 4vh;
+  font-family: 'Paytone One', sans-serif;
+  font-size: 2vh;
+  color: #ffffff;
+  background-color: #1DB954;
+  border: none;
+  border-radius: 50px;
+  outline: none;
+}
+
+.playlist-card__convert-button:focus,
+.playlist-card__convert-button:hover {
+  background-color: #1BD760;
+}
+
+.playlist-card__convert-button:disabled {
+  background-color: #61646780;
+}
+
+@media screen and (max-width: 705px) {
+  .playlist-card__details {
+    width: 100%;
+    justify-content: space-around;
+  }
+}
