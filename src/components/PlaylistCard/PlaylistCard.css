@@ -52,7 +52,7 @@
   width: 30%;
 }
 
-.playlist-card__convert-button {
+.playlist-card__button {
   height: 4vh;
   font-family: 'Paytone One', sans-serif;
   font-size: 2vh;
@@ -63,18 +63,43 @@
   outline: none;
 }
 
-.playlist-card__convert-button:focus,
-.playlist-card__convert-button:hover {
+.playlist-card__button:focus,
+.playlist-card__button:hover {
   background-color: #1BD760;
 }
 
-.playlist-card__convert-button:disabled {
+.playlist-card__button--blue {
+  background-color: #74A1DF;
+}
+
+.playlist-card__button--blue:focus,
+.playlist-card__button--blue:hover {
+  background-color: lightblue;
+}
+
+.playlist-card__button:disabled {
   background-color: #61646780;
+}
+
+.fa-arrow-circle-down {
+  font-size: 7vh;
+  align-self: center;
+  animation: changeOpacity 1s ease-in infinite alternate
 }
 
 @media screen and (max-width: 705px) {
   .playlist-card__details {
     width: 100%;
     justify-content: space-around;
+  }
+}
+
+@keyframes changeOpacity {
+  from {
+    opacity: 0.2;
+  }
+
+  to {
+    opacity: 1;
   }
 }

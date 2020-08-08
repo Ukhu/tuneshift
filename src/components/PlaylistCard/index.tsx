@@ -2,7 +2,7 @@ import React from 'react';
 // import Skeleton from 'react-loading-skeleton'
 import './PlaylistCard.css'
 
-function PlaylistCard(): JSX.Element {
+function PlaylistCard(props: { viewBtn?: boolean }): JSX.Element {
   return (
     <div className="playlist-card">
       <img className="playlist-card__image" src="https://i.scdn.co/image/0d447b6faae870f890dc5780cc58d9afdbc36a1d" alt="spotify playlist"/>
@@ -13,7 +13,9 @@ function PlaylistCard(): JSX.Element {
           <p className="playlist-card__properties">Created by: <span className="playlist-card__value">Osaukhu Iyamuosa</span></p>
           <p className="playlist-card__properties">Songs: <span className="playlist-card__value">11</span></p>
         </div>
-        <button className="playlist-card__convert-button">CONVERT</button>
+        <button className={`playlist-card__button ${props.viewBtn ? 'playlist-card__button--blue' : null}`}>
+          {props.viewBtn ? 'VIEW' : 'CONVERT'}
+        </button>
       </div>
     </div>
   )
