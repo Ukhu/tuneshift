@@ -11,6 +11,8 @@ function Main(): JSX.Element {
 				<button className="main__button" type="submit">GET SONGS</button>
 			</div>
 			<PlaylistCard />
+			<i className="fas fa-arrow-circle-down"></i>
+			<PlaylistCard viewBtn />
 		</div>
 	)
 }
