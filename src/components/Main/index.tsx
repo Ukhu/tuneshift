@@ -2,13 +2,7 @@ import React from 'react';
 import PlaylistCard from '../PlaylistCard';
 import './Main.css';
 
-interface Prop {
-	spotifyToken: string | null,
-	appleMusicToken: string | null
-	error: string
-}
-
-function Main(props: Prop): JSX.Element {
+function Main(): JSX.Element {
 	return (
 		<div className="main">
 			<p className="main__title">Fastest way to convert a playlist between <span className="main__title-brands">Spotify</span> and <span className="main__title-brands">Apple Music</span></p>
