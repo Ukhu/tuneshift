@@ -1,2 +1,2 @@
-# spotify-2-applemusic
-A simple web application that converts spotify music playlists to apple music playlists and vice versa
+# spotify-2-deezer
+A simple web application that converts a Spotify playlist to it's Deezer version and vice versa
