@@ -6,13 +6,8 @@ import './App.css';
 
 const auth: AuthService = new AuthService();
 
-interface SpotifyAuthError {
-  error: string,
-  error_description: string
-}
-
 function App(): JSX.Element {
-  const [spotifyError, setSpotifyError] = useState<SpotifyAuthError>();
+  const [error, setError] = useState<string>('');
 
   useEffect(() => {
     let isTokenAvailable = auth.isTokenAvailable();
@@ -23,15 +18,15 @@ function App(): JSX.Element {
 
   function authenticate(): void {
     auth.authenticateWithSpotify().catch(error => {
-      setSpotifyError(error.response.data)
+      setError(`${error.response.data.error_description}. Please reload your browser tab!`)
     });
   }
 
   return (
     <div className="app">
       <Header />
-      {spotifyError && <p className="app__auth-error">{spotifyError.error_description}. Please reload tab.</p>}
-      <Main />
+      {error && <p className="app__auth-error">{error}  <i className="fas fa-times" onClick={() => setError('')}></i></p>}
+      <Main handleError={setError}/>
     </div>
   )
 }

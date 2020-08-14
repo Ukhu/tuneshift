@@ -52,6 +52,7 @@
 	border-top-right-radius: 50px;
 	border-bottom-right-radius: 50px;
 	outline: none;
+	cursor: pointer;
 }
 
 .main__button:focus, .main__button:hover {

@@ -4,11 +4,11 @@ import { spotifyClientId, spotifyClientSecret } from '../utils/constants';
 
 class AuthService {
   private spotifyUrl: string = 'https://accounts.spotify.com/api/token';
-  private spotifyToken: string = '';
+  static spotifyToken: string = '';
 
   public isTokenAvailable(): boolean {
-    this.spotifyToken = window.localStorage.getItem('spotify_access_token') ?? '';
-    return this.spotifyToken !== '';
+    AuthService.spotifyToken = window.localStorage.getItem('spotify_access_token') ?? '';
+    return AuthService.spotifyToken !== '';
   }
 
   public authenticateWithSpotify(): Promise<void> {
@@ -24,8 +24,8 @@ class AuthService {
       }
     })
     .then(response => {
-      this.spotifyToken = response.data.access_token;
-      window.localStorage.setItem('spotify_access_token', this.spotifyToken);
+      AuthService.spotifyToken = response.data.access_token;
+      window.localStorage.setItem('spotify_access_token', AuthService.spotifyToken);
     })
   }
 }
