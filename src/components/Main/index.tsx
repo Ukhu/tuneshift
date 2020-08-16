@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import querystring from 'querystring';
+import cryptoRandomString from 'crypto-random-string';
 import AuthService from '../../auth/AuthService';
 import PlaylistCard from '../PlaylistCard';
+import { spotifyClientId, deezerAppId } from '../../utils/constants';
 import './Main.css';
 
 const corsProxyUrl = process.env.REACT_APP_CORS_PROXY_URL;
@@ -22,6 +25,21 @@ interface Track {
 const checkDeezer = /^(https:\/\/)?(www\.)?deezer\.com\/playlist\/[0-9]+$/i;
 const checkSpotify = /^(https:\/\/)?(www\.)?open.spotify.com\/playlist\/([0-9a-zA-Z]){22}$/i;
 
+function getAntiCsrfSafeString(): string {
+	let antiCsrfState = localStorage.getItem('anti_csrf_state');
+	if (antiCsrfState === null) {
+		antiCsrfState = cryptoRandomString({
+			length: 20,
+			type: 'base64'
+		});
+		localStorage.setItem('anti_csrf_state', antiCsrfState);
+		return antiCsrfState;
+	}
+	return antiCsrfState;
+}
+
+const antiCsrfState = getAntiCsrfSafeString();
+
 function identifySrcProvider(url: string): string {
 	if (checkDeezer.test(url)) return 'deezer';
 
@@ -39,6 +57,81 @@ function Main(props: {handleError: React.Dispatch<React.SetStateAction<string>>}
 
 	function handlePlaylistUrlInput(e: React.ChangeEvent<HTMLInputElement>): void {
 		setPlaylistUrl(e.target.value);
+	}
+
+	function convertPlaylist(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
+		if (playlist.providerName === 'deezer') {
+			const spotifyUserToken = localStorage.getItem('spotify_user_access_token') ?? '';
+
+			if (spotifyUserToken === '') {
+				window.open(`https://accounts.spotify.com/authorize?${querystring.stringify({
+					client_id: spotifyClientId,
+					response_type: 'token',
+					redirect_uri: 'http://localhost:3000/callback',
+					scope: 'playlist-modify-public',
+					state: antiCsrfState
+				})}`)
+	
+				const handleConversion = () => {
+					window.removeEventListener('focus', handleConversion);
+					const recievedToken = localStorage.getItem('spotify_user_access_token') ?? '';
+					const recievedState = localStorage.getItem('received_anti_csrf_state') ?? '';
+	
+					const decodedState = decodeURIComponent(recievedState);
+	
+					if (decodedState !== antiCsrfState) {
+						return props.handleError('This authorization request is invalid. Kindly re-authorize')
+					}
+	
+					if (recievedToken === '') {
+						return props.handleError('Kindly authorize application!')
+					}
+	
+					console.log(recievedToken);
+					console.log(recievedState);
+				}
+	
+				window.addEventListener('focus', handleConversion);
+			} else {
+				console.log(spotifyUserToken);
+			}
+		}
+		else if (playlist.providerName === 'spotify') {
+			const deezerUserToken = localStorage.getItem('deezer_user_access_token') ?? '';
+
+			if (deezerUserToken === '') {
+				window.open(`https://connect.deezer.com/oauth/auth.php?${querystring.stringify({
+					app_id: deezerAppId,
+					response_type: 'token',
+					redirect_uri: 'http://localhost:3000/callback',
+					perms: 'manage_library',
+					state: antiCsrfState
+				})}`)
+	
+				const handleConversion = () => {
+					window.removeEventListener('focus', handleConversion);
+					const recievedToken = localStorage.getItem('deezer_user_access_token') ?? '';
+					const recievedState = localStorage.getItem('received_anti_csrf_state') ?? '';
+	
+					const decodedState = decodeURIComponent(recievedState);
+
+					if (decodedState !== '' && decodedState !== antiCsrfState) {
+						return props.handleError('Invalid authorization request. Kindly re-authorize')
+					}
+	
+					if (recievedToken === '') {
+						return props.handleError('Kindly authorize application!')
+					}
+	
+					console.log(recievedToken);
+					console.log(recievedState);
+				}
+	
+				window.addEventListener('focus', handleConversion);
+			} else {
+				console.log(deezerUserToken);
+			}
+		}
 	}
 
 	function getPlaylist(): void {
@@ -159,7 +252,7 @@ function Main(props: {handleError: React.Dispatch<React.SetStateAction<string>>}
 						{isFetching ? 'Fetching...' : 'GET SONGS'}
 				</button>
 			</div>
-			{(isFetching || Object.keys(playlist).length > 0) && <PlaylistCard playlist={playlist}/>}
+			{(isFetching || Object.keys(playlist).length > 0) && <PlaylistCard playlist={playlist} convertPlaylist={convertPlaylist}/>}
 			{!preConvert && (
 				<> 
 					<i className="fas fa-arrow-circle-down"></i>
