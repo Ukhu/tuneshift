@@ -5,11 +5,12 @@ import './PlaylistCard.css';
 
 interface PlaylistCardProps {
   playlist: Playlist,
-  viewBtn?: boolean
+  viewBtn?: boolean,
+  convertPlaylist? : (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void
 }
 
 function PlaylistCard(props: PlaylistCardProps): JSX.Element {
-  const { viewBtn, playlist } = props;
+  const { viewBtn, playlist, convertPlaylist } = props;
 
   return (
     <div className="playlist-card">
@@ -55,9 +56,10 @@ function PlaylistCard(props: PlaylistCardProps): JSX.Element {
         </div>
         {
           Object.keys(playlist).length > 0 ?
-          <button className={`playlist-card__button ${viewBtn ? 'playlist-card__button--blue' : null}`}>
-          {props.viewBtn ? 'VIEW' : 'CONVERT'}
-          </button>
+            viewBtn ?
+              <button className={'playlist-card__button playlist-card__button--blue'}>VIEW</button>
+              :
+              <button className={'playlist-card__button'} onClick={convertPlaylist}>CONVERT</button>
           :
           <Skeleton height={'4vh'} />
         }
