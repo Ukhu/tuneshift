@@ -6,9 +6,12 @@ class AuthService {
   private spotifyUrl: string = 'https://accounts.spotify.com/api/token';
   static spotifyToken: string = '';
 
-  public isTokenAvailable(): boolean {
+  public isSpotifyTokenAvailable(): boolean {
     AuthService.spotifyToken = window.localStorage.getItem('spotify_access_token') ?? '';
-    return AuthService.spotifyToken !== '';
+    const expirationTime = window.localStorage.getItem('spotify_expires_in') ?? '';
+    const isExpired  = Date.now() > Number(expirationTime);
+    
+    return AuthService.spotifyToken !== '' && !isExpired;
   }
 
   public authenticateWithSpotify(): Promise<void> {
@@ -24,7 +27,10 @@ class AuthService {
       }
     })
     .then(response => {
+      const expirationValueInMilliseconds = response.data.expires_in * 1000
+      const expiresIn = Date.now() + expirationValueInMilliseconds;
       AuthService.spotifyToken = response.data.access_token;
+      window.localStorage.setItem('spotify_expires_in', expiresIn.toString());
       window.localStorage.setItem('spotify_access_token', AuthService.spotifyToken);
     })
   }

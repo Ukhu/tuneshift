@@ -1,4 +1,5 @@
 import React, {useState, useEffect} from 'react';
+import { getParamsObj } from './utils/helpers';
 import AuthService from './auth/AuthService';
 import Header from './components/Header';
 import Main from './components/Main'
@@ -15,7 +16,6 @@ function handleWithHashFragment() {
   } else {
     window.localStorage.setItem('deezer_user_access_token', recievedCredentials.access_token);
   }
-  window.close();
 }
 
 function handleWithQueryParams() {
@@ -24,35 +24,22 @@ function handleWithQueryParams() {
   if (recievedCredentials.state) {
     window.localStorage.setItem('received_anti_csrf_state', recievedCredentials.state);
   }
-  window.close();
-}
-
-function getParamsObj(arr: string[]) {
-  return arr.map(pair => {
-    let splitPair = pair.split('=');
-    let pairObj: {[index: string]: string} = {};
-    pairObj[splitPair[0]] = splitPair[1]
-    return pairObj;
-  }).reduce((acc, curr) => {
-    let currEntries = Object.entries(curr)[0];
-    acc[currEntries[0]] = currEntries[1]
-    return acc
-  }, {})
 }
 
 function App(): JSX.Element {
   const [error, setError] = useState<string>('');
 
   useEffect(() => {
-    if  (window.location.pathname === '/callback') {
+    if (window.location.pathname === '/callback') {
       if (window.location.search !== '') {
         handleWithQueryParams();
       } else {
         handleWithHashFragment();
       }
+      window.close()
     }
-    let isTokenAvailable = auth.isTokenAvailable();
-    if (!isTokenAvailable) {
+    let isSpotifyTokenAvailable = auth.isSpotifyTokenAvailable();
+    if (!isSpotifyTokenAvailable) {
       authenticate();
     }
   }, []);
@@ -66,7 +53,11 @@ function App(): JSX.Element {
   return (
     <div className="app">
       <Header />
-      {error && <p className="app__auth-error">{error}  <i className="fas fa-times" onClick={() => setError('')}></i></p>}
+      {error && 
+        <p className="app__auth-error">
+          {error}  <i className="fas fa-times" onClick={() => setError('')}></i>
+        </p>
+      }
       <Main handleError={setError}/>
     </div>
   )

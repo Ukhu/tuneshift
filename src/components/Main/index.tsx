@@ -238,6 +238,7 @@ function Main(props: {handleError: React.Dispatch<React.SetStateAction<string>>}
 			</p>
 			<div className="main__mini-form">
 				<input className="main__input"
+					aria-label="Playlist URL input"
 					type="text"
 					name="playlist-input"
 					value={playlistUrl}
@@ -252,7 +253,9 @@ function Main(props: {handleError: React.Dispatch<React.SetStateAction<string>>}
 						{isFetching ? 'Fetching...' : 'GET SONGS'}
 				</button>
 			</div>
-			{(isFetching || Object.keys(playlist).length > 0) && <PlaylistCard playlist={playlist} convertPlaylist={convertPlaylist}/>}
+			{(isFetching || Object.keys(playlist).length > 0) &&
+				<PlaylistCard playlist={playlist} convertPlaylist={convertPlaylist}/>
+			}
 			{!preConvert && (
 				<> 
 					<i className="fas fa-arrow-circle-down"></i>
