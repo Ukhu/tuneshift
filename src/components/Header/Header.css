@@ -6,7 +6,7 @@
 	padding: 0 10vw;
 	align-items: center;
 	justify-content: space-between;
-	border-bottom: 2px solid #FF3056;
+	border-bottom: 3px solid #74A1DF;
 }
   
 .header__logo {
@@ -18,7 +18,7 @@
 }
 
 .header__logo-span {
-	color: #FF3056;
+	color: #74A1DF;
 }
 
 .header__socials {
