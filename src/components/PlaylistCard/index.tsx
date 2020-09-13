@@ -48,14 +48,14 @@ function PlaylistCard(props: PlaylistCardProps): JSX.Element {
             <Skeleton/>
           }
           { 
-            Object.keys(playlist).length > 0 ? 
+            playlist.tracks.length > 0 ? 
             <p className="playlist-card__properties">Songs: <span className="playlist-card__value">{playlist.tracks?.length}</span></p>
             :
             <Skeleton/>
           }
         </div>
         {
-          Object.keys(playlist).length > 0 ?
+          playlist.owner ?
             viewBtn ?
               <button className={'playlist-card__button playlist-card__button--blue'}>VIEW</button>
               :

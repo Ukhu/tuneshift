@@ -10,11 +10,11 @@ import './Main.css';
 const corsProxyUrl = process.env.REACT_APP_CORS_PROXY_URL;
 
 export interface Playlist {
-	owner?: string,
-	title?: string,
-	image?: string,
-	tracks?: Track[],
-	providerName?: string
+	owner: string,
+	title: string,
+	image: string,
+	tracks: Track[],
+	providerName: string
 }
 
 interface Track {
@@ -48,10 +48,18 @@ function identifySrcProvider(url: string): string {
 	return '';
 }
 
+const initialPlaylist: Playlist = {
+	owner: '',
+	title: '',
+	image: '',
+	tracks: [],
+	providerName: ''
+}
+
 function Main(props: {handleError: React.Dispatch<React.SetStateAction<string>>}): JSX.Element {
 	const [playlistUrl, setPlaylistUrl] = useState<string>('');
-	const [playlist, setPlaylist] = useState<Playlist>({})
-	const [derivedPlaylist, setDerivedPlaylist] = useState<Playlist>({})
+	const [playlist, setPlaylist] = useState<Playlist>(initialPlaylist)
+	const [derivedPlaylist, setDerivedPlaylist] = useState<Playlist>(initialPlaylist)
 	const [preConvert, setPreConvert] = useState<boolean>(true);
 	const [isFetching, setIsFetching] = useState<boolean>(false);
 
@@ -89,11 +97,13 @@ function Main(props: {handleError: React.Dispatch<React.SetStateAction<string>>}
 	
 					console.log(recievedToken);
 					console.log(recievedState);
+
+					searchSpotify(recievedToken);
 				}
 	
 				window.addEventListener('focus', handleConversion);
 			} else {
-				console.log(spotifyUserToken);
+				searchSpotify(spotifyUserToken);
 			}
 		}
 		else if (playlist.providerName === 'spotify') {
@@ -134,6 +144,29 @@ function Main(props: {handleError: React.Dispatch<React.SetStateAction<string>>}
 		}
 	}
 
+	function searchSpotify(access_token: string) {
+		const searchUrls = playlist.tracks.map(track => {
+			return `https://api.spotify.com/v1/search?${querystring.stringify({
+				q: `track:"${track.title}" artist:${track.artist}`,
+				type: 'track',
+				offset: 0,
+				limit: 1
+			})}`
+		});
+
+		Promise.all(searchUrls.map(url => axios.get(url, {
+			headers: {
+				Authorization: `Bearer ${access_token}`
+			}
+		}))).then(response => {
+			const recievedTrackIDs: string[] = response.filter(
+				res => res.data.tracks.items.length > 0).map(
+					res => res.data.tracks.items[0].uri
+				)
+			console.log(recievedTrackIDs);
+		})
+	}
+
 	function getPlaylist(): void {
 		const providerName = identifySrcProvider(playlistUrl);
 
@@ -154,7 +187,7 @@ function Main(props: {handleError: React.Dispatch<React.SetStateAction<string>>}
 		const url = `${corsProxyUrl}/https://api.spotify.com/v1/playlists/${id}`;
 
 		setIsFetching(true);
-		setPlaylist({});
+		setPlaylist(initialPlaylist);
 		props.handleError('');
 
 		axios.get(url, {
@@ -196,7 +229,7 @@ function Main(props: {handleError: React.Dispatch<React.SetStateAction<string>>}
 		const url = `${corsProxyUrl}/https://api.deezer.com/playlist/${id}`;
 
 		setIsFetching(true);
-		setPlaylist({});
+		setPlaylist(initialPlaylist);
 		props.handleError('');
 
 		axios.get(url)
@@ -253,7 +286,7 @@ function Main(props: {handleError: React.Dispatch<React.SetStateAction<string>>}
 						{isFetching ? 'Fetching...' : 'GET SONGS'}
 				</button>
 			</div>
-			{(isFetching || Object.keys(playlist).length > 0) &&
+			{(isFetching || playlist !== initialPlaylist) &&
 				<PlaylistCard playlist={playlist} convertPlaylist={convertPlaylist}/>
 			}
 			{!preConvert && (
