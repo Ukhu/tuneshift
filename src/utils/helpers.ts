@@ -15,3 +15,12 @@ export function getParamsObj(arr: string[]) {
     return acc
   }, {})
 }
+
+const checkDeezer = /^(https:\/\/)?(www\.)?deezer\.com\/playlist\/[0-9]+$/i;
+const checkSpotify = /^(https:\/\/)?(www\.)?open.spotify.com\/playlist\/([0-9a-zA-Z]){22}$/i;
+
+export function identifySrcProvider(url: string): string {
+	if (checkDeezer.test(url)) return 'deezer';
+	if (checkSpotify.test(url)) return 'spotify';
+	return '';
+}
