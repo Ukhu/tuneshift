@@ -1,6 +1,6 @@
 import React from 'react';
 import Skeleton from 'react-loading-skeleton';
-import { Playlist } from '../Main';
+import { Playlist } from '../main/Main';
 import './PlaylistCard.css';
 
 interface PlaylistCardProps {

@@ -1,8 +1,8 @@
 import React, {useState, useEffect} from 'react';
 import { getParamsObj } from './utils/helpers';
 import AuthService from './auth/AuthService';
-import Header from './components/Header';
-import Main from './components/Main'
+import Header from './components/header/Header';
+import Main from './components/main/Main'
 import './App.css';
 
 const auth: AuthService = new AuthService();

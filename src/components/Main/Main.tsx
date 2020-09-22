@@ -3,7 +3,7 @@ import axios from 'axios';
 import querystring from 'querystring';
 import cryptoRandomString from 'crypto-random-string';
 import AuthService from '../../auth/AuthService';
-import PlaylistCard from '../PlaylistCard';
+import PlaylistCard from '../playlistCard/PlaylistCard';
 import { spotifyClientId, deezerAppId } from '../../utils/constants';
 import './Main.css';
 
