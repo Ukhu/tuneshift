@@ -1,11 +1,8 @@
 import React, {useState, useEffect} from 'react';
 import { getParamsObj } from './utils/helpers';
-import AuthService from './auth/AuthService';
 import Header from './components/header/Header';
 import Main from './components/main/Main'
 import './App.css';
-
-const auth: AuthService = new AuthService();
 
 function handleWithHashFragment() {
   const hashParams = window.location.hash.split(/#|&/i).slice(1)
@@ -38,17 +35,7 @@ function App(): JSX.Element {
       }
       window.close()
     }
-    let isSpotifyTokenAvailable = auth.isSpotifyTokenAvailable();
-    if (!isSpotifyTokenAvailable) {
-      authenticate();
-    }
   }, []);
-
-  function authenticate(): void {
-    auth.authenticateWithSpotify().catch(error => {
-      setError(`${error.response.data.error_description}. Please reload your browser tab!`)
-    });
-  }
 
   return (
     <div className="app">
