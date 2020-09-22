@@ -7,7 +7,8 @@ export interface Playlist {
 	title: string,
 	image: string,
 	tracks: Track[],
-	providerName: string
+	providerName: string,
+	link?: string
 }
 
 export interface Track {

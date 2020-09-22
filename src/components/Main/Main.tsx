@@ -89,10 +89,12 @@ function Main(props: {handleError: React.Dispatch<React.SetStateAction<string>>}
 	}
 
 	function convertPlaylist() {
+		setPreConvert(false);
 		if (playlist.providerName === 'deezer') {
 			client.searchSpotify(playlist).then((trackIDs: string[]) => {
-				console.log(trackIDs)
-			}).catch(e => {
+				return client.createAndPopulatePlaylist(trackIDs, playlist.title);
+			}).then((playlist) => setDerivedPlaylist(playlist))
+			.catch(e => {
 				props.handleError(e.response.data.error.message)
 			})
 		}

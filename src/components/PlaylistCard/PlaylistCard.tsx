@@ -57,7 +57,9 @@ function PlaylistCard(props: PlaylistCardProps): JSX.Element {
         {
           playlist.owner ?
             viewBtn ?
-              <button className={'playlist-card__button playlist-card__button--blue'}>VIEW</button>
+              <button className={'playlist-card__button playlist-card__button--blue'}>
+                <a className="playlist-card__view-link" href={playlist.link} target="_blank" rel="noopener noreferrer">VIEW</a>
+              </button>
               :
               <button className={'playlist-card__button'} onClick={convertPlaylist}>CONVERT</button>
           :

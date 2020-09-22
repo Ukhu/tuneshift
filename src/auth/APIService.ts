@@ -4,9 +4,9 @@ import cryptoRandomString from 'crypto-random-string';
 import { SPOTIFY_CLIENT_ID, DEEZER_CLIENT_ID, CORS_PROXY_URL, Track, Playlist } from '../utils/constants';
 
 class AuthService {
-  public spotifyBaseUrl: string = `${CORS_PROXY_URL}/https://api.spotify.com/v1`;
+  public spotifyBaseUrl: string = `https://api.spotify.com/v1`;
   public spotifyAccessToken: string = '';
-  public deezerBaseUrl: string = `${CORS_PROXY_URL}/https://api.deezer.com`;
+  public deezerBaseUrl: string = `https://api.deezer.com`;
   public deezerAccessToken: string = '';
   public antiCSRFState: string;
   private readonly _client: AxiosInstance;
@@ -80,14 +80,14 @@ class AuthService {
   }
 
   // Regular Methods
-  fetchSpotifyPlaylist(id: string): Promise<any> {
-    return this._client.get(`${this.spotifyBaseUrl}/playlists/${id}`, {
+  fetchSpotifyPlaylist(id: string): Promise<Playlist> {
+    return this._client.get(`${CORS_PROXY_URL}/${this.spotifyBaseUrl}/playlists/${id}`, {
       headers: {
         'Authorization': `Bearer ${this.spotifyAccessToken}`
       }
     }).then((response) => {
-      const { name, owner, tracks, images } = response.data;
-      const playlistImage = images.filter((img: any) => img.height === 300)[0].url || images[0].url;
+      const { name, owner, tracks, images, external_urls } = response.data;
+      const playlistImage = images.filter((img: any) => img.height === 300)[0]?.url || images[0].url;
       const prunedTracks: Track[] = tracks.items.filter((item: any) => item.track.type === 'track').map((item: any) => ({
         artist: item.track.artists[0].name,
         title: item.name
@@ -98,13 +98,14 @@ class AuthService {
         title: name,
         image: playlistImage,
         tracks: prunedTracks,
-        providerName: 'spotify'
+        providerName: 'spotify',
+        link: external_urls.spotify
       })
     })
   }
 
-  fetchDeezerPlaylist(id: string): Promise<any> {
-    return this._client.get(`${this.deezerBaseUrl}/playlist/${id}`, {
+  fetchDeezerPlaylist(id: string): Promise<Playlist> {
+    return this._client.get(`${CORS_PROXY_URL}/${this.deezerBaseUrl}/playlist/${id}`, {
       headers: {
         'Authorization': `Bearer ${this.deezerAccessToken}`
       }
@@ -130,7 +131,7 @@ class AuthService {
     })
   }
 
-  searchSpotify(playlist: Playlist) {
+  searchSpotify(playlist: Playlist): Promise<string[]> {
     const searchUrls = playlist.tracks.map(track => {
       return `https://api.spotify.com/v1/search?${querystring.stringify({
         q: `track:"${track.title}" artist:${track.artist}`,
@@ -140,7 +141,7 @@ class AuthService {
       })}`
     });
  
-    return Promise.all(searchUrls.map(url => axios.get(url, {
+    return Promise.all(searchUrls.map(url => this._client.get(url, {
       headers: {
         Authorization: `Bearer ${this.spotifyAccessToken}`
       }
@@ -152,6 +153,36 @@ class AuthService {
       
       return recievedTrackIDs
     })
+  }
+
+  createAndPopulatePlaylist(trackIDs: string[], title: string): Promise<Playlist> {
+    let userId: string;
+    let newlyCreatedPlaylistId: string;
+  
+    return this._client.get(`${this.spotifyBaseUrl}/me`, {
+      headers: {
+        Authorization: `Bearer ${this.spotifyAccessToken}`
+      }
+    }).then(response => {
+      userId = response.data.id
+      return this._client.post(`${this.spotifyBaseUrl}/users/${userId}/playlists`, {
+        name: title,
+        description: 'Playlist created with love by tuneshift'
+      }, { headers: {
+          Authorization: `Bearer ${this.spotifyAccessToken}`,
+          'Content-Type': 'application/json'
+        }
+      })
+    }).then(response => {
+      newlyCreatedPlaylistId = response.data.id;
+      return this._client.post(`${this.spotifyBaseUrl}/playlists/${newlyCreatedPlaylistId}/tracks`, {
+        uris: trackIDs
+      }, { headers: {
+          Authorization: `Bearer ${this.spotifyAccessToken}`,
+          'Content-Type': 'application/json'
+        }
+      })
+    }).then(() => this.fetchSpotifyPlaylist(newlyCreatedPlaylistId))
   }
 }
 
