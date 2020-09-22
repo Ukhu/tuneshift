@@ -1,7 +1,7 @@
 import axios, { AxiosInstance } from 'axios';
 import querystring from 'querystring';
 import cryptoRandomString from 'crypto-random-string';
-import { SPOTIFY_CLIENT_ID, DEEZER_CLIENT_ID, CORS_PROXY_URL, Track } from '../utils/constants';
+import { SPOTIFY_CLIENT_ID, DEEZER_CLIENT_ID, CORS_PROXY_URL, Track, Playlist } from '../utils/constants';
 
 class AuthService {
   public spotifyBaseUrl: string = `${CORS_PROXY_URL}/https://api.spotify.com/v1`;
@@ -64,7 +64,7 @@ class AuthService {
       if (decodedState !== this.antiCSRFState || recievedToken === '') {
         cb('Authorization request invalid. Kindly re-athorize');
       } else {
-        this.spotifyAccessToken = recievedToken;
+        this.deezerAccessToken = recievedToken;
         cb(null)
       }
     }
@@ -100,8 +100,6 @@ class AuthService {
         tracks: prunedTracks,
         providerName: 'spotify'
       })
-    }).catch((e) => {
-      return e.response.data.error.message || 'An error occured'
     })
   }
 
@@ -129,8 +127,30 @@ class AuthService {
 				tracks: prunedTracks,
 				providerName: 'deezer'
       })
-    }).catch((e) => {
-      return e.response.data.error.message || 'An error occured'
+    })
+  }
+
+  searchSpotify(playlist: Playlist) {
+    const searchUrls = playlist.tracks.map(track => {
+      return `https://api.spotify.com/v1/search?${querystring.stringify({
+        q: `track:"${track.title}" artist:${track.artist}`,
+        type: 'track',
+        offset: 0,
+        limit: 1
+      })}`
+    });
+ 
+    return Promise.all(searchUrls.map(url => axios.get(url, {
+      headers: {
+        Authorization: `Bearer ${this.spotifyAccessToken}`
+      }
+    }))).then(response => {
+      const recievedTrackIDs: string[] = response.filter(
+        res => res.data.tracks.items.length > 0).map(
+          res => res.data.tracks.items[0].uri
+        )
+      
+      return recievedTrackIDs
     })
   }
 }

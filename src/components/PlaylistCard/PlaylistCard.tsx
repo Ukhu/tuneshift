@@ -1,12 +1,12 @@
 import React from 'react';
 import Skeleton from 'react-loading-skeleton';
-import { Playlist } from '../main/Main';
+import { Playlist } from '../../utils/constants';
 import './PlaylistCard.css';
 
 interface PlaylistCardProps {
   playlist: Playlist,
   viewBtn?: boolean,
-  convertPlaylist? : (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void
+  convertPlaylist? : (event: React.MouseEvent<HTMLButtonElement>) => void
 }
 
 function PlaylistCard(props: PlaylistCardProps): JSX.Element {

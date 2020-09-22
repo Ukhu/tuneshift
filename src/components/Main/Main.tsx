@@ -1,52 +1,9 @@
 import React, { useState } from 'react';
-import axios from 'axios';
-import querystring from 'querystring';
-import cryptoRandomString from 'crypto-random-string';
-import AuthService from '../../auth/AuthService';
+import { Playlist } from '../../utils/constants';
+import { identifySrcProvider } from '../../utils/helpers';
+import AuthService from '../../auth/APIService';
 import PlaylistCard from '../playlistCard/PlaylistCard';
-import { spotifyClientId, deezerAppId } from '../../utils/constants';
 import './Main.css';
-
-const corsProxyUrl = process.env.REACT_APP_CORS_PROXY_URL;
-
-export interface Playlist {
-	owner: string,
-	title: string,
-	image: string,
-	tracks: Track[],
-	providerName: string
-}
-
-interface Track {
-	artist: string,
-	title: string
-}
-
-const checkDeezer = /^(https:\/\/)?(www\.)?deezer\.com\/playlist\/[0-9]+$/i;
-const checkSpotify = /^(https:\/\/)?(www\.)?open.spotify.com\/playlist\/([0-9a-zA-Z]){22}$/i;
-
-function getAntiCsrfSafeString(): string {
-	let antiCsrfState = localStorage.getItem('anti_csrf_state');
-	if (antiCsrfState === null) {
-		antiCsrfState = cryptoRandomString({
-			length: 20,
-			type: 'base64'
-		});
-		localStorage.setItem('anti_csrf_state', antiCsrfState);
-		return antiCsrfState;
-	}
-	return antiCsrfState;
-}
-
-const antiCsrfState = getAntiCsrfSafeString();
-
-function identifySrcProvider(url: string): string {
-	if (checkDeezer.test(url)) return 'deezer';
-
-	if (checkSpotify.test(url)) return 'spotify';
-
-	return '';
-}
 
 const initialPlaylist: Playlist = {
 	owner: '',
@@ -56,212 +13,90 @@ const initialPlaylist: Playlist = {
 	providerName: ''
 }
 
+const client = new AuthService();
+
 function Main(props: {handleError: React.Dispatch<React.SetStateAction<string>>}): JSX.Element {
 	const [playlistUrl, setPlaylistUrl] = useState<string>('');
 	const [playlist, setPlaylist] = useState<Playlist>(initialPlaylist)
 	const [derivedPlaylist, setDerivedPlaylist] = useState<Playlist>(initialPlaylist)
+	const [spotifyAuthenticated, setSpotifyAuthenticated] = useState<boolean>(false);
+	const [deezerAuthenticated, setDeezerAuthenticated] = useState<boolean>(false);
 	const [preConvert, setPreConvert] = useState<boolean>(true);
 	const [isFetching, setIsFetching] = useState<boolean>(false);
 
-	function handlePlaylistUrlInput(e: React.ChangeEvent<HTMLInputElement>): void {
-		setPlaylistUrl(e.target.value);
-	}
-
-	function convertPlaylist(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
-		if (playlist.providerName === 'deezer') {
-			const spotifyUserToken = localStorage.getItem('spotify_user_access_token') ?? '';
-
-			if (spotifyUserToken === '') {
-				window.open(`https://accounts.spotify.com/authorize?${querystring.stringify({
-					client_id: spotifyClientId,
-					response_type: 'token',
-					redirect_uri: 'http://localhost:3000/callback',
-					scope: 'playlist-modify-public',
-					state: antiCsrfState
-				})}`)
-	
-				const handleConversion = () => {
-					window.removeEventListener('focus', handleConversion);
-					const recievedToken = localStorage.getItem('spotify_user_access_token') ?? '';
-					const recievedState = localStorage.getItem('received_anti_csrf_state') ?? '';
-	
-					const decodedState = decodeURIComponent(recievedState);
-	
-					if (decodedState !== antiCsrfState) {
-						return props.handleError('This authorization request is invalid. Kindly re-authorize')
-					}
-	
-					if (recievedToken === '') {
-						return props.handleError('Kindly authorize application!')
-					}
-	
-					console.log(recievedToken);
-					console.log(recievedState);
-
-					searchSpotify(recievedToken);
-				}
-	
-				window.addEventListener('focus', handleConversion);
+	function loginSpotify() {
+		if(spotifyAuthenticated) return;
+		client.authorizeWithSpotify((err: string) => {
+			if(err) {
+				props.handleError(err);
 			} else {
-				searchSpotify(spotifyUserToken);
+				setSpotifyAuthenticated(true)
 			}
-		}
-		else if (playlist.providerName === 'spotify') {
-			const deezerUserToken = localStorage.getItem('deezer_user_access_token') ?? '';
-
-			if (deezerUserToken === '') {
-				window.open(`https://connect.deezer.com/oauth/auth.php?${querystring.stringify({
-					app_id: deezerAppId,
-					response_type: 'token',
-					redirect_uri: 'http://localhost:3000/callback',
-					perms: 'manage_library',
-					state: antiCsrfState
-				})}`)
-	
-				const handleConversion = () => {
-					window.removeEventListener('focus', handleConversion);
-					const recievedToken = localStorage.getItem('deezer_user_access_token') ?? '';
-					const recievedState = localStorage.getItem('received_anti_csrf_state') ?? '';
-	
-					const decodedState = decodeURIComponent(recievedState);
-
-					if (decodedState !== '' && decodedState !== antiCsrfState) {
-						return props.handleError('Invalid authorization request. Kindly re-authorize')
-					}
-	
-					if (recievedToken === '') {
-						return props.handleError('Kindly authorize application!')
-					}
-	
-					console.log(recievedToken);
-					console.log(recievedState);
-				}
-	
-				window.addEventListener('focus', handleConversion);
-			} else {
-				console.log(deezerUserToken);
-			}
-		}
-	}
-
-	function searchSpotify(access_token: string) {
-		const searchUrls = playlist.tracks.map(track => {
-			return `https://api.spotify.com/v1/search?${querystring.stringify({
-				q: `track:"${track.title}" artist:${track.artist}`,
-				type: 'track',
-				offset: 0,
-				limit: 1
-			})}`
 		});
+	}
 
-		Promise.all(searchUrls.map(url => axios.get(url, {
-			headers: {
-				Authorization: `Bearer ${access_token}`
+	function loginDeezer() {
+		if(deezerAuthenticated) return;
+		client.authorizeWithDeezer((err: string) => {
+			if(err) {
+				props.handleError(err);
+			} else {
+				setDeezerAuthenticated(true)
 			}
-		}))).then(response => {
-			const recievedTrackIDs: string[] = response.filter(
-				res => res.data.tracks.items.length > 0).map(
-					res => res.data.tracks.items[0].uri
-				)
-			console.log(recievedTrackIDs);
-		})
+		});
 	}
 
 	function getPlaylist(): void {
 		const providerName = identifySrcProvider(playlistUrl);
 
-		if (providerName === 'spotify') {
-			fetchSpotify(providerName)
-		} 
-		else if (providerName === 'deezer') {
-			fetchDeezer(providerName)
-		} else {
-			props.handleError('Invalid playlist url entered');
+		if (providerName === 'spotify') fetchSpotify()
+		else if (providerName === 'deezer') fetchDeezer()
+		else props.handleError('Invalid playlist url entered')
+	}
+
+	function fetchSpotify() {
+		const getSpotifyId = /([0-9a-zA-Z]){22}$/i
+		const id = getSpotifyId.exec(playlistUrl)?.map(match => match)[0] ?? '';
+
+		setIsFetching(true);
+		setPlaylist(initialPlaylist);
+		props.handleError('');
+
+		client.fetchSpotifyPlaylist(id).then((playlist) => {
+			setPlaylist(playlist);
+			setIsFetching(false)
+		}).catch(e => {
+			setIsFetching(false);
+			props.handleError(e.response.data.error.message)
+		})
+	}
+
+	function fetchDeezer() {
+		const idRegEx = /[0-9]+$/i
+		const id = idRegEx.exec(playlistUrl)?.map(match => match)[0] ?? '';
+
+		setIsFetching(true);
+		setPlaylist(initialPlaylist);
+		props.handleError('');
+
+		client.fetchDeezerPlaylist(id).then((playlist) => {
+			setPlaylist(playlist);
+			setIsFetching(false)
+		}).catch(e => {
+			setIsFetching(false);
+			props.handleError(e.response.data.error.message)
+		})
+	}
+
+	function convertPlaylist() {
+		if (playlist.providerName === 'deezer') {
+			client.searchSpotify(playlist).then((trackIDs: string[]) => {
+				console.log(trackIDs)
+			}).catch(e => {
+				props.handleError(e.response.data.error.message)
+			})
 		}
 	}
-
-	function fetchSpotify(providerName: string) {
-		const getSpotifyId = /([0-9a-zA-Z]){22}$/i
-		const id = getSpotifyId.exec(playlistUrl)?.map(match => match)[0];
-		
-		const url = `${corsProxyUrl}/https://api.spotify.com/v1/playlists/${id}`;
-
-		setIsFetching(true);
-		setPlaylist(initialPlaylist);
-		props.handleError('');
-
-		axios.get(url, {
-			headers: {
-				'Authorization': `Bearer ${AuthService.spotifyToken}`
-			}
-		})
-		.then(response => {
-			const { name, owner, tracks, images } = response.data;
-
-			const playlistImage = images.filter((img: any) => img.height === 300)[0].url || images[0].url;
-
-			const prunedTracks: Track[] = tracks.items
-				.filter((item: any) => item.track.type === 'track')
-				.map((item: any) => ({
-					artist: item.track.artists[0].name,
-					title: item.name
-				}))
-
-			setPlaylist({
-				owner: owner.display_name,
-				title: name,
-				image: playlistImage,
-				tracks: prunedTracks,
-				providerName
-			});
-
-			setIsFetching(false)
-		})
-		.catch(e => {
-			setIsFetching(false);
-			props.handleError(e.response.data.error.message || 'An error occured')
-		})
-	}
-
-	function fetchDeezer(providerName: string) {
-		const idRegEx = /[0-9]+$/i
-		const id = idRegEx.exec(playlistUrl)?.map(match => match)[0];
-		const url = `${corsProxyUrl}/https://api.deezer.com/playlist/${id}`;
-
-		setIsFetching(true);
-		setPlaylist(initialPlaylist);
-		props.handleError('');
-
-		axios.get(url)
-		.then(response => {
-			const { title, creator, tracks, picture_medium, error } = response.data;
-
-			if (error) {
-				throw new Error(error.message)
-			}
-
-			const prunedTracks: Track[] = tracks.data
-				.filter((track: any) => track.type === 'track')
-				.map((track: any) => ({
-					artist: track.artist.name,
-					title: track.title
-				}))
-
-			setPlaylist({
-				owner: creator.name,
-				title,
-				image: picture_medium,
-				tracks: prunedTracks,
-				providerName
-			});
-
-			setIsFetching(false)
-		})
-		.catch(error => {
-			setIsFetching(false);
-			props.handleError(error.message)
-		})
-	} 
 
 	return (
 		<div className="main">
@@ -276,15 +111,18 @@ function Main(props: {handleError: React.Dispatch<React.SetStateAction<string>>}
 					name="playlist-input"
 					value={playlistUrl}
 					placeholder="E.g https://deezer.com/playlist/12345"
-					onChange={handlePlaylistUrlInput}
-					disabled={isFetching}
-				/>
+					onChange={(e) => setPlaylistUrl(e.target.value)}
+					disabled={isFetching || !spotifyAuthenticated || !deezerAuthenticated}/>
 				<button className="main__button" 
 					type="submit"
 					onClick={getPlaylist}
-					disabled={isFetching}>
+					disabled={isFetching || !spotifyAuthenticated || !deezerAuthenticated}>
 						{isFetching ? 'Fetching...' : 'GET SONGS'}
 				</button>
+			</div>
+			<div className="main__auth-buttons-group">
+				<button onClick={loginSpotify} className="main__auth-buttons">{spotifyAuthenticated ? 'Connected' : 'Login to'} <i className="fab fa-spotify" /></button>
+				<button onClick={loginDeezer} className="main__auth-buttons">{deezerAuthenticated ? 'Connected' : 'Login to'} <i className="fab fa-deezer" /></button>
 			</div>
 			{(isFetching || playlist !== initialPlaylist) &&
 				<PlaylistCard playlist={playlist} convertPlaylist={convertPlaylist}/>

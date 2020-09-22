@@ -5,6 +5,7 @@
 	max-width: 80vw;
 	height: fit-content;
 	padding-top: 10vmin;
+	font-family: 'Poiret One', cursive;
 }
 
 .main__title {
@@ -63,6 +64,17 @@
 .main__button:disabled {
 	background-color: #61646780;
 	border-color: #61646780;
+}
+
+.main__auth-buttons-group {
+	display: flex;
+	margin-top: 10px;
+	justify-content: center;
+}
+
+.main__auth-buttons {
+	margin-right: 20px;
+	cursor: pointer;
 }
 
 @media screen and (min-width: 1050px) {
