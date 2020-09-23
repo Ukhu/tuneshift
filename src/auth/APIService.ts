@@ -90,7 +90,7 @@ class AuthService {
       const playlistImage = images.filter((img: any) => img.height === 300)[0]?.url || images[0].url;
       const prunedTracks: Track[] = tracks.items.filter((item: any) => item.track.type === 'track').map((item: any) => ({
         artist: item.track.artists[0].name,
-        title: item.name
+        title: item.track.name
       }))
 
       return ({
@@ -133,7 +133,7 @@ class AuthService {
 
   searchSpotify(playlist: Playlist): Promise<string[]> {
     const searchUrls = playlist.tracks.map(track => {
-      return `https://api.spotify.com/v1/search?${querystring.stringify({
+      return `${this.spotifyBaseUrl}/search?${querystring.stringify({
         q: `track:"${track.title}" artist:${track.artist}`,
         type: 'track',
         offset: 0,
@@ -183,6 +183,29 @@ class AuthService {
         }
       })
     }).then(() => this.fetchSpotifyPlaylist(newlyCreatedPlaylistId))
+  }
+
+  searchDeezer(playlist: Playlist): Promise<string[]> {
+    const searchUrls = playlist.tracks.map(track => {
+      console.log(track)
+      return `${CORS_PROXY_URL}/${this.deezerBaseUrl}/search/track?${querystring.stringify({
+        q: `track:"${track.title}" artist:${track.artist}`,
+        index: 0,
+        limit: 1
+      })}`
+    });
+ 
+    return Promise.all(searchUrls.map(url => this._client.get(url, {
+      headers: {
+        Authorization: `Bearer ${this.deezerAccessToken}`
+      }
+    }))).then(response => {
+      const recievedTrackIDs: string[] = response.filter(
+        res => res.data.data.length > 0).map(
+          res => res.data.data[0].id
+        )
+      return recievedTrackIDs
+    })
   }
 }
 

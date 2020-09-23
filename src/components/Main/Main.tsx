@@ -97,6 +97,10 @@ function Main(props: {handleError: React.Dispatch<React.SetStateAction<string>>}
 			.catch(e => {
 				props.handleError(e.response.data.error.message)
 			})
+		} else if (playlist.providerName === 'spotify') {
+			client.searchDeezer(playlist).then((trackIDs: string[]) => {
+				console.log(trackIDs);
+			})
 		}
 	}
 
