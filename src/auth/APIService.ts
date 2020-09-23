@@ -110,7 +110,7 @@ class AuthService {
         'Authorization': `Bearer ${this.deezerAccessToken}`
       }
     }).then((response) => {
-      const { title, creator, tracks, picture_medium, error } = response.data;
+      const { title, creator, tracks, picture_medium, link, error } = response.data;
 
 			if (error) {
 				throw new Error(error.message)
@@ -126,7 +126,8 @@ class AuthService {
 				title,
 				image: picture_medium,
 				tracks: prunedTracks,
-				providerName: 'deezer'
+        providerName: 'deezer',
+        link
       })
     })
   }
@@ -155,7 +156,7 @@ class AuthService {
     })
   }
 
-  createAndPopulatePlaylist(trackIDs: string[], title: string): Promise<Playlist> {
+  createAndPopulateSpotifyPlaylist(trackIDs: string[], title: string): Promise<Playlist> {
     let userId: string;
     let newlyCreatedPlaylistId: string;
   
@@ -187,7 +188,6 @@ class AuthService {
 
   searchDeezer(playlist: Playlist): Promise<string[]> {
     const searchUrls = playlist.tracks.map(track => {
-      console.log(track)
       return `${CORS_PROXY_URL}/${this.deezerBaseUrl}/search/track?${querystring.stringify({
         q: `track:"${track.title}" artist:${track.artist}`,
         index: 0,
@@ -205,6 +205,33 @@ class AuthService {
           res => res.data.data[0].id
         )
       return recievedTrackIDs
+    })
+  }
+
+  createAndPopulateDeezerPlaylist(trackIDs: string[], title: string): Promise<Playlist> {
+    let newlyCreatedPlaylistId: string;
+  
+    return this._client.get(`${CORS_PROXY_URL}/${this.deezerBaseUrl}/user/me/playlists?${querystring.stringify({
+      title: `${title} - created by tuneshift`,
+      request_method: 'POST',
+      access_token: this.deezerAccessToken
+    })}`).then(response => {
+      const {id, error} = response.data;
+      if (error) {
+				throw new Error(error.message)
+      }
+      newlyCreatedPlaylistId = id
+      return this._client.get(`${CORS_PROXY_URL}/${this.deezerBaseUrl}/playlist/${newlyCreatedPlaylistId}/tracks?${querystring.stringify({
+        songs: `[${trackIDs}]`,
+        request_method: 'POST',
+        access_token: this.deezerAccessToken
+      })}`)
+    }).then((response) => {
+      const { error } = response.data;
+      if (error) {
+				throw new Error(error.message)
+      }
+      return this.fetchDeezerPlaylist(newlyCreatedPlaylistId)
     })
   }
 }
