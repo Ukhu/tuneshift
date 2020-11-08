@@ -5,20 +5,19 @@
 	max-width: 80vw;
 	height: fit-content;
 	padding-top: 10vmin;
-	font-family: 'Poiret One', cursive;
 }
 
 .main__title {
-	font-size: 6vh;
-	font-family: 'Poiret One', cursive;
-	font-weight: bold;
+	font-size: 2.5rem;
+	font-weight: 500;
 	margin-bottom: 5vh;
 }
 
 .main__title-brands {
 	font-family: 'Paytone One', sans-serif;
 	color: #616467;
-	font-size: 7vh;
+	font-size: 3rem;
+	font-weight: bold;
 }
 
 .main__mini-form {
@@ -31,7 +30,6 @@
 	height: 6vh;
 	padding-left: 3vmin;
 	font-size: 2vh;
-	font-family: 'Poiret One', cursive;
 	border: 1px solid #7F7F7F;
 	border-top-left-radius: 50px;
 	border-bottom-left-radius: 50px;
@@ -62,8 +60,8 @@
 }
 
 .main__button:disabled {
-	background-color: #61646780;
-	border-color: #61646780;
+	background-color: darkgray;
+	border-color: darkgray;
 }
 
 .main__auth-buttons-group {
@@ -73,8 +71,22 @@
 }
 
 .main__auth-buttons {
+	height: 2.5rem;
+	width: 100px;
 	margin-right: 20px;
+	border-radius: 30px;
 	cursor: pointer;
+	border: none;
+}
+
+.main__auth-buttons:hover {
+	background-color: black;
+	color: white
+}
+
+.connected {
+	background-color: black;
+	color: white
 }
 
 @media screen and (min-width: 1050px) {

@@ -134,8 +134,14 @@ function Main(props: {handleError: React.Dispatch<React.SetStateAction<string>>}
 				</button>
 			</div>
 			<div className="main__auth-buttons-group">
-				<button onClick={loginSpotify} className="main__auth-buttons">{spotifyAuthenticated ? 'Connected' : 'Login to'} <i className="fab fa-spotify" /></button>
-				<button onClick={loginDeezer} className="main__auth-buttons">{deezerAuthenticated ? 'Connected' : 'Login to'} <i className="fab fa-deezer" /></button>
+				<button onClick={loginSpotify}
+					className={`main__auth-buttons ${spotifyAuthenticated ? 'connected' : ''}`}>
+						{spotifyAuthenticated ? 'Connected' : 'Login to'} <i className="fab fa-spotify" />
+				</button>
+				<button onClick={loginDeezer}
+					className={`main__auth-buttons ${deezerAuthenticated ? 'connected' : ''}`}>
+						{deezerAuthenticated ? 'Connected' : 'Login to'} <i className="fab fa-deezer" />
+				</button>
 			</div>
 			{(isFetching || playlist !== initialPlaylist) &&
 				<PlaylistCard playlist={playlist} convertPlaylist={convertPlaylist}/>

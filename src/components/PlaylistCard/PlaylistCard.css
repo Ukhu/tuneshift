@@ -43,12 +43,8 @@
   justify-content: space-around;
 }
 
-.playlist-card__properties {
-  font-family: 'Poiret One', cursive;
-}
-
 .playlist-card__value {
-  font-family: 'Paytone One', sans-serif;
+  font-weight: bold;
   width: 30%;
 }
 
