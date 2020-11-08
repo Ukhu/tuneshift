@@ -1,0 +1,12 @@
+.footer {
+  display: flex;
+  height: 10vh;
+  justify-content: center;
+  align-items: center;
+}
+
+.footer__twitter-link {
+  text-decoration: none;
+  color: darkgray;
+  font-weight: bold;
+}

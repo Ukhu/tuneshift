@@ -1,6 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import { getParamsObj } from './utils/helpers';
 import Header from './components/header/Header';
+import Footer from './components/footer/Footer';
 import Main from './components/main/Main'
 import './App.css';
 
@@ -46,6 +47,7 @@ function App(): JSX.Element {
         </p>
       }
       <Main handleError={setError}/>
+      <Footer />
     </div>
   )
 }
