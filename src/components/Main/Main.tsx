@@ -113,17 +113,18 @@ function Main(props: {handleError: React.Dispatch<React.SetStateAction<string>>}
 
 	return (
 		<div className="main">
-			<p className="main__title">Fastest way to convert a playlist between 
-				<span className="main__title-brands"> Spotify</span> and 
-				<span className="main__title-brands"> Deezer</span>
-			</p>
+			<div className="main__copy-text">
+				<h1 className="main__title">Copy your Favourite Playlists from Popular Providers
+				</h1>
+				<p>Enter the url of the Spotify or Deezer playlist you want to copy</p>
+			</div>
 			<div className="main__mini-form">
 				<input className="main__input"
 					aria-label="Playlist URL input"
 					type="text"
 					name="playlist-input"
 					value={playlistUrl}
-					placeholder="E.g https://deezer.com/playlist/12345"
+					placeholder="e.g https://deezer.com/playlist/12345"
 					onChange={(e) => setPlaylistUrl(e.target.value)}
 					disabled={isFetching || !spotifyAuthenticated || !deezerAuthenticated}/>
 				<button className="main__button" 

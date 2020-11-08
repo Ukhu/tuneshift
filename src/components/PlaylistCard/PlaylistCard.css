@@ -50,7 +50,7 @@
 
 .playlist-card__button {
   height: 4vh;
-  font-family: 'Paytone One', sans-serif;
+  font-weight: bold;
   font-size: 2vh;
   color: #ffffff;
   background-color: #1DB954;

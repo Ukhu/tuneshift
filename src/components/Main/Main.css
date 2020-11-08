@@ -7,10 +7,14 @@
 	padding-top: 10vmin;
 }
 
-.main__title {
-	font-size: 2.5rem;
-	font-weight: 500;
+.main__copy-text {
 	margin-bottom: 5vh;
+}
+
+.main__title {
+	font-size: 3.5rem;
+	font-family: 'Paytone One', sans-serif;
+	padding-bottom: 1rem;
 }
 
 .main__title-brands {
@@ -44,7 +48,7 @@
 	flex-grow: 1;
 	height: 6vh;
 	font-size: 2vh;
-	font-family: 'Paytone One', sans-serif;
+	font-weight: bold;
 	background-color: #1DB954;
 	color: #ffffff;
 	border: 1px solid #1DB954;
@@ -80,12 +84,12 @@
 }
 
 .main__auth-buttons:hover {
-	background-color: black;
+	background-color: #16181d;
 	color: white
 }
 
 .connected {
-	background-color: black;
+	background-color: #16181d;
 	color: white
 }
 
