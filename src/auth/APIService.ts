@@ -50,18 +50,14 @@ class AuthService {
       app_id: DEEZER_CLIENT_ID,
       response_type: 'token',
       redirect_uri: 'http://localhost:3000/callback',
-      perms: 'manage_library',
-      state: this.antiCSRFState
+      perms: 'manage_library'
     })}`);
 
     const handleFocus = () => {
       window.removeEventListener('focus', handleFocus);
       const recievedToken = localStorage.getItem('deezer_user_access_token') ?? '';
-      const recievedState = localStorage.getItem('received_anti_csrf_state') ?? '';
 
-      const decodedState = decodeURIComponent(recievedState);
-
-      if (decodedState !== this.antiCSRFState || recievedToken === '') {
+      if (recievedToken === '') {
         cb('Authorization request invalid. Kindly re-athorize');
       } else {
         this.deezerAccessToken = recievedToken;
