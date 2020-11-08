@@ -87,10 +87,15 @@
  color: #ffffff;
 }
 
-.fa-arrow-circle-down {
+.down-arrow--animate {
   font-size: 7vh;
   align-self: center;
   animation: changeOpacity 1s ease-in infinite alternate
+}
+
+.down-arrow {
+  font-size: 7vh;
+  align-self: center;
 }
 
 @media screen and (max-width: 705px) {

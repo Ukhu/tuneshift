@@ -60,6 +60,8 @@ function Main(props: {handleError: React.Dispatch<React.SetStateAction<string>>}
 
 		setIsFetching(true);
 		setPlaylist(initialPlaylist);
+		setDerivedPlaylist(initialPlaylist);
+		setPreConvert(true);
 		props.handleError('');
 
 		client.fetchSpotifyPlaylist(id).then((playlist) => {
@@ -77,6 +79,8 @@ function Main(props: {handleError: React.Dispatch<React.SetStateAction<string>>}
 
 		setIsFetching(true);
 		setPlaylist(initialPlaylist);
+		setDerivedPlaylist(initialPlaylist);
+		setPreConvert(true);
 		props.handleError('');
 
 		client.fetchDeezerPlaylist(id).then((playlist) => {
@@ -102,7 +106,7 @@ function Main(props: {handleError: React.Dispatch<React.SetStateAction<string>>}
 				return client.createAndPopulateDeezerPlaylist(trackIDs, playlist.title);
 			}).then((playlist) => setDerivedPlaylist(playlist))
 			.catch(e => {
-				props.handleError(e);
+				props.handleError(e.message);
 			})
 		}
 	}
@@ -138,7 +142,7 @@ function Main(props: {handleError: React.Dispatch<React.SetStateAction<string>>}
 			}
 			{!preConvert && (
 				<> 
-					<i className="fas fa-arrow-circle-down"></i>
+					<i className={`fas fa-arrow-circle-down ${derivedPlaylist.title ? 'down-arrow' : 'down-arrow--animate'}`}></i>
 					<PlaylistCard playlist={derivedPlaylist} viewBtn />
 				</>
 			)}
