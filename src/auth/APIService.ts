@@ -1,7 +1,15 @@
 import axios, { AxiosInstance } from 'axios';
 import querystring from 'querystring';
 import cryptoRandomString from 'crypto-random-string';
-import { SPOTIFY_CLIENT_ID, SPOTIFY_AUTH_FUNCTION_URL, DEEZER_CLIENT_ID, CORS_PROXY_URL, Track, Playlist } from '../utils/constants';
+import { 
+  SPOTIFY_CLIENT_ID,
+  CALLBACK_URL,
+  SPOTIFY_AUTH_FUNCTION_URL,
+  DEEZER_CLIENT_ID,
+  CORS_PROXY_URL,
+  Track,
+  Playlist
+} from '../utils/constants';
 
 class AuthService {
   public spotifyBaseUrl: string = `https://api.spotify.com/v1`;
@@ -50,7 +58,7 @@ class AuthService {
     window.open(`https://accounts.spotify.com/authorize?${querystring.stringify({
       client_id: SPOTIFY_CLIENT_ID,
       response_type: 'token',
-      redirect_uri: 'http://localhost:3000/callback',
+      redirect_uri: CALLBACK_URL,
       scope: 'playlist-modify-public',
       state: this.antiCSRFState
     })}`);
@@ -76,7 +84,7 @@ class AuthService {
     window.open(`https://connect.deezer.com/oauth/auth.php?${querystring.stringify({
       app_id: DEEZER_CLIENT_ID,
       response_type: 'token',
-      redirect_uri: 'http://localhost:3000/callback',
+      redirect_uri: CALLBACK_URL,
       perms: 'manage_library'
     })}`);
 
