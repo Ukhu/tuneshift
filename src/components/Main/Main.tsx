@@ -13,6 +13,8 @@ const initialPlaylist: Playlist = {
 	providerName: ''
 }
 
+type ScrollPosition  = 'top' | 'bottom' | 'center';
+
 function Main(props: {handleError: React.Dispatch<React.SetStateAction<string>>}): JSX.Element {
 	const [playlistUrl, setPlaylistUrl] = useState<string>('');
 	const [playlist, setPlaylist] = useState<Playlist>(initialPlaylist)
@@ -48,6 +50,20 @@ function Main(props: {handleError: React.Dispatch<React.SetStateAction<string>>}
 		else props.handleError('Invalid playlist url entered')
 	}
 
+	function scrollHere(destination: ScrollPosition) {
+		const height = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0)
+		const dests = {
+			top: 0,
+			center: height / 2,
+			bottom: height
+		}
+		setImmediate(() => window.scrollTo({
+			top: dests[destination],
+			left: 0,
+			behavior: 'smooth'
+		}));
+	}
+	
 	function fetchSpotify() {
 		const getSpotifyId = /([0-9a-zA-Z]){22}$/i
 		const id = getSpotifyId.exec(playlistUrl)?.map(match => match)[0] ?? '';
@@ -56,6 +72,7 @@ function Main(props: {handleError: React.Dispatch<React.SetStateAction<string>>}
 		setPlaylist(initialPlaylist);
 		setDerivedPlaylist(initialPlaylist);
 		setPreConvert(true);
+		scrollHere('bottom');
 		props.handleError('');
 
 		client.fetchSpotifyPlaylist(id).then((playlist) => {
@@ -75,6 +92,7 @@ function Main(props: {handleError: React.Dispatch<React.SetStateAction<string>>}
 		setPlaylist(initialPlaylist);
 		setDerivedPlaylist(initialPlaylist);
 		setPreConvert(true);
+		scrollHere('bottom');
 		props.handleError('');
 
 		client.fetchDeezerPlaylist(id).then((playlist) => {
@@ -88,18 +106,24 @@ function Main(props: {handleError: React.Dispatch<React.SetStateAction<string>>}
 
 	function convertPlaylist() {
 		setPreConvert(false);
+		scrollHere('bottom');
 		if (playlist.providerName === 'deezer') {
 			client.searchSpotify(playlist).then((trackIDs: string[]) => {
 				return client.createAndPopulateSpotifyPlaylist(trackIDs, playlist.title);
 			}).then((playlist) => setDerivedPlaylist(playlist))
 			.catch(e => {
-				props.handleError(e.response.data.error.message)
+				setPreConvert(true);
+				scrollHere('top');
+				if (e.response) return props.handleError(e.response.data.error.message)
+				props.handleError(e.message)
 			})
 		} else if (playlist.providerName === 'spotify') {
 			client.searchDeezer(playlist).then((trackIDs: string[]) => {
 				return client.createAndPopulateDeezerPlaylist(trackIDs, playlist.title);
 			}).then((playlist) => setDerivedPlaylist(playlist))
 			.catch(e => {
+				setPreConvert(true);
+				scrollHere('top');
 				props.handleError(e.message);
 			})
 		}
