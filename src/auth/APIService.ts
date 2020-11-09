@@ -6,6 +6,7 @@ import { SPOTIFY_CLIENT_ID, SPOTIFY_AUTH_FUNCTION_URL, DEEZER_CLIENT_ID, CORS_PR
 class AuthService {
   public spotifyBaseUrl: string = `https://api.spotify.com/v1`;
   public spotifyAccessToken: string = '';
+  public spotifyAppAccessToken: string = '';
   public deezerBaseUrl: string = `https://api.deezer.com`;
   public deezerAccessToken: string = '';
   public antiCSRFState: string;
@@ -25,6 +26,8 @@ class AuthService {
         const accessToken = response.data.access_token;
         const expiry = response.data.expires_in;
 
+        this.spotifyAppAccessToken = accessToken
+
         const dateOfExpiry = Date.now() + (expiry * 1000);
 
         window.localStorage.setItem('sp_at_token', accessToken);
@@ -36,6 +39,7 @@ class AuthService {
     const spotifyToken = window.localStorage.getItem('sp_at_token') ?? '';
     const tokenExpiry = window.localStorage.getItem('sp_at_expiry') ?? 0;
 
+    this.spotifyAppAccessToken = spotifyToken;
     const isExpired = Date.now() > Number(tokenExpiry)
 
     return Boolean(spotifyToken && !isExpired);
@@ -102,7 +106,7 @@ class AuthService {
   fetchSpotifyPlaylist(id: string): Promise<Playlist> {
     return this._client.get(`${CORS_PROXY_URL}/${this.spotifyBaseUrl}/playlists/${id}`, {
       headers: {
-        'Authorization': `Bearer ${this.spotifyAccessToken}`
+        'Authorization': `Bearer ${this.spotifyAppAccessToken}`
       }
     }).then((response) => {
       const { name, owner, tracks, images, external_urls } = response.data;
