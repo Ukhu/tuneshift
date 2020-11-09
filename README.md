@@ -1,2 +1,9 @@
-# spotify-2-applemusic
-A simple web application that converts spotify music playlists to apple music playlists and vice versa
+# Tuneshift
+An app for copying playlist from one provider to another like Spotify to Deezer
+
+### Supported providers
+
+Currently supports:
+
+- Spotify
+- Deezer
