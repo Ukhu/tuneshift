@@ -3,7 +3,7 @@ const querystring = require("querystring");
 
 const SPOTIFY_URL = process.env.SPOTIFY_URL;
 const SPOTIFY_CLIENT_ID = process.env.REACT_APP_SPOTIFY_CLIENT_ID;
-const SPOTIFY_CLIENT_SECRET = process.env.REACT_APP_SPOTIFY_CLIENT_ID;
+const SPOTIFY_CLIENT_SECRET = process.env.REACT_APP_SPOTIFY_CLIENT_SECRET;
 
 const headers = {
   "Access-Control-Allow-Origin": "*",
