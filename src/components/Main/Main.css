@@ -17,13 +17,6 @@
 	padding-bottom: 1rem;
 }
 
-.main__title-brands {
-	font-family: 'Paytone One', sans-serif;
-	color: #616467;
-	font-size: 3rem;
-	font-weight: bold;
-}
-
 .main__mini-form {
 	display: flex;
 	height: fit-content;
@@ -66,31 +59,6 @@
 .main__button:disabled {
 	background-color: darkgray;
 	border-color: darkgray;
-}
-
-.main__auth-buttons-group {
-	display: flex;
-	margin-top: 10px;
-	justify-content: center;
-}
-
-.main__auth-buttons {
-	height: 2.5rem;
-	width: 100px;
-	margin-right: 20px;
-	border-radius: 30px;
-	cursor: pointer;
-	border: none;
-}
-
-.main__auth-buttons:hover {
-	background-color: #16181d;
-	color: white
-}
-
-.connected {
-	background-color: #16181d;
-	color: white
 }
 
 @media screen and (min-width: 1050px) {

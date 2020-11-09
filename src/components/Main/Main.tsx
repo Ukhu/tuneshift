@@ -17,29 +17,25 @@ function Main(props: {handleError: React.Dispatch<React.SetStateAction<string>>}
 	const [playlistUrl, setPlaylistUrl] = useState<string>('');
 	const [playlist, setPlaylist] = useState<Playlist>(initialPlaylist)
 	const [derivedPlaylist, setDerivedPlaylist] = useState<Playlist>(initialPlaylist)
-	const [spotifyAuthenticated, setSpotifyAuthenticated] = useState<boolean>(false);
-	const [deezerAuthenticated, setDeezerAuthenticated] = useState<boolean>(false);
 	const [preConvert, setPreConvert] = useState<boolean>(true);
 	const [isFetching, setIsFetching] = useState<boolean>(false);
 
-	function loginSpotify() {
-		if(spotifyAuthenticated) return;
+	function authorizeSpotify() {
 		client.authorizeWithSpotify((err: string) => {
 			if(err) {
 				props.handleError(err);
 			} else {
-				setSpotifyAuthenticated(true)
+				convertPlaylist()
 			}
 		});
 	}
 
-	function loginDeezer() {
-		if(deezerAuthenticated) return;
+	function authorizeDeezer() {
 		client.authorizeWithDeezer((err: string) => {
 			if(err) {
 				props.handleError(err);
 			} else {
-				setDeezerAuthenticated(true)
+				convertPlaylist()
 			}
 		});
 	}
@@ -123,27 +119,17 @@ function Main(props: {handleError: React.Dispatch<React.SetStateAction<string>>}
 					name="playlist-input"
 					value={playlistUrl}
 					placeholder="e.g https://deezer.com/playlist/12345"
-					onChange={(e) => setPlaylistUrl(e.target.value)}
-					disabled={isFetching || !spotifyAuthenticated || !deezerAuthenticated}/>
+					onChange={(e) => setPlaylistUrl(e.target.value)}/>
 				<button className="main__button" 
 					type="submit"
-					onClick={getPlaylist}
-					disabled={isFetching || !spotifyAuthenticated || !deezerAuthenticated}>
+					onClick={getPlaylist}>
 						{isFetching ? 'Fetching...' : 'GET SONGS'}
 				</button>
 			</div>
-			<div className="main__auth-buttons-group">
-				<button onClick={loginSpotify}
-					className={`main__auth-buttons ${spotifyAuthenticated ? 'connected' : ''}`}>
-						{spotifyAuthenticated ? 'Connected' : 'Login to'} <i className="fab fa-spotify" />
-				</button>
-				<button onClick={loginDeezer}
-					className={`main__auth-buttons ${deezerAuthenticated ? 'connected' : ''}`}>
-						{deezerAuthenticated ? 'Connected' : 'Login to'} <i className="fab fa-deezer" />
-				</button>
-			</div>
 			{(isFetching || playlist !== initialPlaylist) &&
-				<PlaylistCard playlist={playlist} convertPlaylist={convertPlaylist}/>
+				<PlaylistCard
+					playlist={playlist}
+					convertPlaylist={playlist.providerName === 'deezer' ? authorizeSpotify : authorizeDeezer}/>
 			}
 			{!preConvert && (
 				<> 
