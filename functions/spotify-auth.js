@@ -34,18 +34,18 @@ exports.handler = function(event, context, callback) {
   }).then(axiosRes => {
     callback(null, {
       statusCode: 200,
-      body: {
+      body: JSON.stringify({
         access_token: axiosRes.data.access_token,
         expires_in: axiosRes.data.expires_in
-      },
+      }),
       headers
     })
   }).catch((axiosErr) => {
     callback(null, {
       statusCode: axiosErr.response.status,
-      body: {
+      body: JSON.stringify({
         message: axiosErr.response.data.error_description
-      },
+      }),
       headers
     })
   })
