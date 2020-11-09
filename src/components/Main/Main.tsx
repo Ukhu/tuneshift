@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Playlist } from '../../utils/constants';
 import { identifySrcProvider } from '../../utils/helpers';
 import client from '../../auth/APIService';
-import PlaylistCard from '../playlistCard/PlaylistCard';
+import PlaylistCard from '../PlaylistCard/PlaylistCard';
 import './Main.css';
 
 const initialPlaylist: Playlist = {

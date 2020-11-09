@@ -1,9 +1,9 @@
 import React, {useState, useEffect} from 'react';
 import { handleWithQueryParams, handleWithHashFragment } from './utils/helpers';
 import client from './auth/APIService';
-import Header from './components/header/Header';
+import Header from './components/Header/Header';
 import Footer from './components/footer/Footer';
-import Main from './components/main/Main'
+import Main from './components/Main/Main'
 import './App.css';
 
 function App(): JSX.Element {
