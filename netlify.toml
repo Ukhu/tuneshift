@@ -1,7 +1,21 @@
-[builds]
-
-  publish = "build/"
+[build]
+  publish = "build"
 
   command = "npm run build"
 
-  functions = "functions/"
+  functions = "functions"
+
+[[redirects]]
+  from = "/*"
+
+  to = "/index.html"
+
+  status = 200
+
+[[headers]]
+  for = "/*"
+
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "OPTIONS, GET"
+    Access-Control-Max-Age = 2592000

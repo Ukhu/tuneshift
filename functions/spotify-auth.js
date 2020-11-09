@@ -5,7 +5,7 @@ const SPOTIFY_URL = process.env.SPOTIFY_URL;
 const SPOTIFY_CLIENT_ID = process.env.REACT_APP_SPOTIFY_CLIENT_ID;
 const SPOTIFY_CLIENT_SECRET = process.env.REACT_APP_SPOTIFY_CLIENT_ID;
 
-exports.handler = async function (event, context) {
+exports.handler = async function(event, context) {
   const BASE64_ENCODED_KEY = Buffer.from(SPOTIFY_CLIENT_ID + ':' + SPOTIFY_CLIENT_SECRET).toString('base64');
 
   return axios.post(SPOTIFY_URL,
