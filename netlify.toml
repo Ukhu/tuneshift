@@ -18,4 +18,4 @@
   [headers.values]
     Access-Control-Allow-Origin = "*"
     Access-Control-Allow-Methods = "OPTIONS, GET"
-    Access-Control-Max-Age = 2592000
+    Access-Control-Max-Age = "2592000"
