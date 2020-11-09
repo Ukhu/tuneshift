@@ -1,13 +1,7 @@
-[build]
-  publish = "build"
+[builds]
+
+  publish = "build/"
 
   command = "npm run build"
 
-  functions = "functions"
-
-[[redirects]]
-  from = "/*"
-
-  to = "/index.html"
-
-  status = 200
+  functions = "functions/"
