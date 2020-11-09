@@ -1,7 +1,7 @@
 import axios, { AxiosInstance } from 'axios';
 import querystring from 'querystring';
 import cryptoRandomString from 'crypto-random-string';
-import { SPOTIFY_CLIENT_ID, DEEZER_CLIENT_ID, CORS_PROXY_URL, Track, Playlist } from '../utils/constants';
+import { SPOTIFY_CLIENT_ID, SPOTIFY_AUTH_FUNCTION_URL, DEEZER_CLIENT_ID, CORS_PROXY_URL, Track, Playlist } from '../utils/constants';
 
 class AuthService {
   public spotifyBaseUrl: string = `https://api.spotify.com/v1`;
@@ -16,6 +16,29 @@ class AuthService {
 
     });
     this.antiCSRFState = this.generateAntiCSRFSafe();
+  }
+
+  // Initial Spotify auth method that calls the serverless function to obtain access_token
+  authenticateSpotify(): Promise<void> {
+    return this._client.get(SPOTIFY_AUTH_FUNCTION_URL)
+      .then((response) => {
+        const accessToken = response.data.access_token;
+        const expiry = response.data.expires_in;
+
+        const dateOfExpiry = Date.now() + (expiry * 1000);
+
+        window.localStorage.setItem('sp_at_token', accessToken);
+        window.localStorage.setItem('sp_at_expiry', dateOfExpiry.toString());
+      })
+  }
+
+  checkToken(): boolean {
+    const spotifyToken = window.localStorage.getItem('sp_at_token') ?? '';
+    const tokenExpiry = window.localStorage.getItem('sp_at_expiry') ?? 0;
+
+    const isExpired = Date.now() > Number(tokenExpiry)
+
+    return Boolean(spotifyToken && !isExpired);
   }
 
   // Authorization Methods
@@ -232,4 +255,4 @@ class AuthService {
   }
 }
 
-export default AuthService;
+export default new AuthService();

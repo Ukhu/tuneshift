@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Playlist } from '../../utils/constants';
 import { identifySrcProvider } from '../../utils/helpers';
-import AuthService from '../../auth/APIService';
+import client from '../../auth/APIService';
 import PlaylistCard from '../playlistCard/PlaylistCard';
 import './Main.css';
 
@@ -12,8 +12,6 @@ const initialPlaylist: Playlist = {
 	tracks: [],
 	providerName: ''
 }
-
-const client = new AuthService();
 
 function Main(props: {handleError: React.Dispatch<React.SetStateAction<string>>}): JSX.Element {
 	const [playlistUrl, setPlaylistUrl] = useState<string>('');
