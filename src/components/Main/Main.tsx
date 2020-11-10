@@ -132,7 +132,7 @@ function Main(props: {handleError: React.Dispatch<React.SetStateAction<string>>}
 	return (
 		<div className="main">
 			<div className="main__copy-text">
-				<h1 className="main__title">Copy your Favourite Playlists from Popular Providers
+				<h1 className="main__title">Clone your favourite Playlists from popular Providers
 				</h1>
 				<p>Enter the url of the Spotify or Deezer playlist you want to copy</p>
 			</div>
