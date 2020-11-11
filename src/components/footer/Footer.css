@@ -5,6 +5,17 @@
   align-items: center;
 }
 
+.footer p {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+}
+
+.footer a {
+  margin-left: 5px;
+}
+
 .footer__twitter-link {
   text-decoration: none;
   color: darkgray;
