@@ -17,6 +17,10 @@
 	padding-bottom: 1rem;
 }
 
+.main p {
+	font-size: 1.2rem;
+}
+
 .main__mini-form {
 	display: flex;
 	height: fit-content;
@@ -31,6 +35,7 @@
 	border-top-left-radius: 50px;
 	border-bottom-left-radius: 50px;
 	outline: none;
+	overflow: scroll;
 }
 
 .main__input:focus, .main__input:hover {
@@ -68,16 +73,27 @@
 }
 
 @media screen and (max-width: 467px) {
+	.main {
+		max-width: 85vw;
+		padding-top: 6vmin;
+	}
+
+	.main__title {
+		font-size: 2.5rem;
+	}
+
 	.main__mini-form {
 		flex-wrap: wrap;
 	}
 
 	.main__input {
 		border-radius: 50px;
+		height: 7vh;
 		padding-left: 5vmin;
 	}
 
 	.main__button {
+		height: 7vh;
 		width: 100%;
 		border-radius: 50px;
 		margin-top: 3vw;
