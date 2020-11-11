@@ -49,7 +49,7 @@
 }
 
 .playlist-card__button {
-  height: 4vh;
+  height: 5vh;
   font-weight: bold;
   font-size: 2vh;
   color: #ffffff;
@@ -98,6 +98,16 @@
   .playlist-card__details {
     width: 100%;
     justify-content: space-around;
+  }
+}
+
+@media screen and (max-width: 467px) {
+  .playlist-card__button {
+    height: 7vh;
+  }
+
+  .playlist-card__image {
+    width: inherit;
   }
 }
 
