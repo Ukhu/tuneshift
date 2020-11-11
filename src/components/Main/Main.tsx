@@ -80,7 +80,8 @@ function Main(props: {handleError: React.Dispatch<React.SetStateAction<string>>}
 			setIsFetching(false)
 		}).catch(e => {
 			setIsFetching(false);
-			props.handleError(e.response.data.error.message)
+			if (e.response) return props.handleError(e.response.data.error.message)
+				props.handleError(e.message)
 		})
 	}
 
@@ -100,7 +101,8 @@ function Main(props: {handleError: React.Dispatch<React.SetStateAction<string>>}
 			setIsFetching(false)
 		}).catch(e => {
 			setIsFetching(false);
-			props.handleError(e.response.data.error.message)
+			if (e.response) return props.handleError(e.response.data.error.message)
+				props.handleError(e.message)
 		})
 	}
 
