@@ -13,7 +13,6 @@
 
 .main__title {
 	font-size: 3.5rem;
-	font-family: 'Paytone One', sans-serif;
 	padding-bottom: 1rem;
 }
 
@@ -32,8 +31,6 @@
 	padding-left: 3vmin;
 	font-size: 2vh;
 	border: 1px solid #7F7F7F;
-	border-top-left-radius: 50px;
-	border-bottom-left-radius: 50px;
 	outline: none;
 	overflow: scroll;
 }
@@ -50,8 +47,6 @@
 	background-color: #1DB954;
 	color: #ffffff;
 	border: 1px solid #1DB954;
-	border-top-right-radius: 50px;
-	border-bottom-right-radius: 50px;
 	outline: none;
 	cursor: pointer;
 }
@@ -87,7 +82,6 @@
 	}
 
 	.main__input {
-		border-radius: 50px;
 		height: 7vh;
 		padding-left: 5vmin;
 	}
@@ -95,7 +89,6 @@
 	.main__button {
 		height: 7vh;
 		width: 100%;
-		border-radius: 50px;
 		margin-top: 3vw;
 	}
 }
