@@ -3,8 +3,8 @@ interface Credentials {
   state?: string
 }
 
-const checkDeezer = /^(https:\/\/)?(www\.)?deezer\.com\/playlist\/[0-9]+$/i;
-const checkSpotify = /^(https:\/\/)?(www\.)?open.spotify.com\/playlist\/([0-9a-zA-Z]){22}$/i;
+const checkDeezer = /^(https:\/\/)?(www\.)?deezer\.com\/([a-zA-Z]{2}\/)?playlist\/[0-9]+/i;
+const checkSpotify = /^(https:\/\/)?(www\.)?open.spotify.com\/([a-zA-Z]{2}\/)?playlist\/([0-9a-zA-Z]){22}/i;
 
 export function identifySrcProvider(url: string): string {
 	if (checkDeezer.test(url)) return 'deezer';
@@ -23,6 +23,14 @@ export function getParamsObj(arr: string[]) {
     acc[currEntries[0]] = currEntries[1]
     return acc
   }, {})
+}
+
+export function formatTitle(title: string) {
+  const titleLength = title.split(' ').join('').length;
+  if (titleLength > 15) {
+    return title.slice(0, 15)+'...'
+  }
+  return title;
 }
 
 export function handleWithHashFragment() {

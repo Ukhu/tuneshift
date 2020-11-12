@@ -164,14 +164,15 @@ class AuthService {
   }
 
   searchSpotify(playlist: Playlist): Promise<string[]> {
-    const searchUrls = playlist.tracks.map(track => {
+    const searchUrls = playlist.tracks.map((track, index) => {
+      if (index >= 50) return '';
       return `${this.spotifyBaseUrl}/search?${querystring.stringify({
         q: `track:"${track.title}" artist:${track.artist}`,
         type: 'track',
         offset: 0,
         limit: 1
       })}`
-    });
+    }).filter(url => url !== '');
  
     return Promise.all(searchUrls.map(url => this._client.get(url, {
       headers: {
@@ -218,13 +219,14 @@ class AuthService {
   }
 
   searchDeezer(playlist: Playlist): Promise<string[]> {
-    const searchUrls = playlist.tracks.map(track => {
+    const searchUrls = playlist.tracks.map((track, index) => {
+      if (index >= 50) return '';
       return `${CORS_PROXY_URL}/${this.deezerBaseUrl}/search/track?${querystring.stringify({
         q: `track:"${track.title}" artist:${track.artist}`,
         index: 0,
         limit: 1
       })}`
-    });
+    }).filter(url => url !== '');
  
     return Promise.all(searchUrls.map(url => this._client.get(url, {
       headers: {
@@ -232,7 +234,7 @@ class AuthService {
       }
     }))).then(response => {
       const recievedTrackIDs: string[] = response.filter(
-        res => res.data.data.length > 0).map(
+        res => res.data.data?.length > 0).map(
           res => res.data.data[0].id
         )
       return recievedTrackIDs
