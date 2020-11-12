@@ -65,7 +65,7 @@ function Main(props: {handleError: React.Dispatch<React.SetStateAction<string>>}
 	}
 	
 	function fetchSpotify() {
-		const getSpotifyId = /([0-9a-zA-Z]){22}$/i
+		const getSpotifyId = /([0-9a-zA-Z]){22}/i
 		const id = getSpotifyId.exec(playlistUrl)?.map(match => match)[0] ?? '';
 
 		setIsFetching(true);
@@ -86,7 +86,7 @@ function Main(props: {handleError: React.Dispatch<React.SetStateAction<string>>}
 	}
 
 	function fetchDeezer() {
-		const idRegEx = /[0-9]+$/i
+		const idRegEx = /[0-9]+/i
 		const id = idRegEx.exec(playlistUrl)?.map(match => match)[0] ?? '';
 
 		setIsFetching(true);
@@ -134,9 +134,9 @@ function Main(props: {handleError: React.Dispatch<React.SetStateAction<string>>}
 	return (
 		<div className="main">
 			<div className="main__copy-text">
-				<h1 className="main__title">Clone your favourite Playlists from popular Providers
+				<h1 className="main__title">Clone your favourite Playlists from popular Platforms
 				</h1>
-				<p>Enter the url of the Spotify or Deezer playlist you want to copy</p>
+				<p>Enter the url of the Spotify or Deezer playlist you want to clone</p>
 			</div>
 			<div className="main__mini-form">
 				<input className="main__input"
@@ -149,7 +149,7 @@ function Main(props: {handleError: React.Dispatch<React.SetStateAction<string>>}
 				<button className="main__button" 
 					type="submit"
 					onClick={getPlaylist}>
-						{isFetching ? 'Fetching...' : 'GET SONGS'}
+						{isFetching ? 'Fetching...' : 'Get Tracks'}
 				</button>
 			</div>
 			{(isFetching || playlist !== initialPlaylist) &&
