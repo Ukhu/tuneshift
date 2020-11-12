@@ -3,7 +3,6 @@
   width: 70%;
   margin: 5vh auto;
   flex-wrap: wrap;
-  border-radius: 10px;
   min-width: fit-content;
   box-shadow: 5px 5px 20px #7F7F7F;
 }
@@ -26,7 +25,6 @@
 }
 
 .playlist-card__provider {
-  font-family: 'Paytone One', sans-serif;
   color: #616467;
   font-size: 3vh;
 }
@@ -44,7 +42,6 @@
 }
 
 .playlist-card__value {
-  font-weight: bold;
   width: 30%;
 }
 
@@ -55,7 +52,6 @@
   color: #ffffff;
   background-color: #1DB954;
   border: none;
-  border-radius: 50px;
   outline: none;
   cursor: pointer;
 }
