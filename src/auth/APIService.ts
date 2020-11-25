@@ -1,4 +1,4 @@
-import axios, { AxiosInstance } from 'axios';
+import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import querystring from 'querystring';
 import cryptoRandomString from 'crypto-random-string';
 import { 
@@ -147,7 +147,7 @@ class AuthService {
 				throw new Error(error.message)
 			}
 
-			const prunedTracks: Track[] = tracks.data.filter((track: any) => track.type === 'track').map((track: any) => ({
+			const prunedTracks: Track[] = tracks.data.slice(0, 100).filter((track: any) => track.type === 'track').map((track: any) => ({
         artist: track.artist.name,
         title: track.title
       }))
@@ -164,27 +164,35 @@ class AuthService {
   }
 
   searchSpotify(playlist: Playlist): Promise<string[]> {
-    const searchUrls = playlist.tracks.map((track, index) => {
-      if (index >= 50) return '';
+    const searchUrls = playlist.tracks.slice(0, 100).map((track) => {
       return `${this.spotifyBaseUrl}/search?${querystring.stringify({
         q: `track:"${track.title}" artist:${track.artist}`,
         type: 'track',
         offset: 0,
         limit: 1
       })}`
-    }).filter(url => url !== '');
- 
-    return Promise.all(searchUrls.map(url => this._client.get(url, {
-      headers: {
-        Authorization: `Bearer ${this.spotifyAccessToken}`
-      }
-    }))).then(response => {
+    })
+
+    return Promise.all(searchUrls.map((url, index) => {
+      const multiplier = Math.floor((index + 1) / 40);
+      const delay = multiplier * 5000;
+      return new Promise<AxiosResponse<any>>((resolve, reject) => {
+        setTimeout(() => {
+          this._client.get(url, {
+            headers: {
+              Authorization: `Bearer ${this.spotifyAccessToken}`
+            }
+          }).then(res => resolve(res))
+          .catch(e => reject(e))
+        }, delay)
+      })
+    })).then(response => {
       const recievedTrackIDs: string[] = response.filter(
         res => res.data.tracks.items.length > 0).map(
           res => res.data.tracks.items[0].uri
         )
-      
-      return recievedTrackIDs
+      const idSet = new Set(recievedTrackIDs);
+      return Array.from(idSet)
     })
   }
 
@@ -219,25 +227,34 @@ class AuthService {
   }
 
   searchDeezer(playlist: Playlist): Promise<string[]> {
-    const searchUrls = playlist.tracks.map((track, index) => {
-      if (index >= 50) return '';
+    const searchUrls = playlist.tracks.slice(0, 100).map((track) => {
       return `${CORS_PROXY_URL}/${this.deezerBaseUrl}/search/track?${querystring.stringify({
         q: `track:"${track.title}" artist:${track.artist}`,
         index: 0,
         limit: 1
       })}`
-    }).filter(url => url !== '');
+    });
  
-    return Promise.all(searchUrls.map(url => this._client.get(url, {
-      headers: {
-        Authorization: `Bearer ${this.deezerAccessToken}`
-      }
-    }))).then(response => {
+    return Promise.all(searchUrls.map((url, index) => {
+      const multiplier = Math.floor((index + 1) / 40);
+      const delay = multiplier * 5000;
+      return new Promise<AxiosResponse<any>>((resolve, reject) => {
+        setTimeout(() => {
+          this._client.get(url, {
+            headers: {
+              Authorization: `Bearer ${this.deezerAccessToken}`
+            }
+          }).then(res => resolve(res))
+          .catch(e => reject(e))
+        }, delay)
+      })
+    })).then(response => {
       const recievedTrackIDs: string[] = response.filter(
         res => res.data.data?.length > 0).map(
           res => res.data.data[0].id
         )
-      return recievedTrackIDs
+      const idSet = new Set(recievedTrackIDs);
+      return Array.from(idSet)
     })
   }
 
@@ -245,7 +262,7 @@ class AuthService {
     let newlyCreatedPlaylistId: string;
   
     return this._client.get(`${CORS_PROXY_URL}/${this.deezerBaseUrl}/user/me/playlists?${querystring.stringify({
-      title: `${title} - created by tuneshift`,
+      title: `${title} - created by TuneShift`,
       request_method: 'POST',
       access_token: this.deezerAccessToken
     })}`).then(response => {
