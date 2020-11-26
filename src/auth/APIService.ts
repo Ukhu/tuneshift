@@ -11,12 +11,14 @@ import {
   Playlist
 } from '../utils/constants';
 
+type AccessToken = 'sp_at' | 'sp_uat' | 'dz_at';
+
 class AuthService {
-  public spotifyBaseUrl: string = `https://api.spotify.com/v1`;
-  public spotifyAccessToken: string = '';
-  public spotifyAppAccessToken: string = '';
-  public deezerBaseUrl: string = `https://api.deezer.com`;
-  public deezerAccessToken: string = '';
+  public spotifyBaseUrl = `https://api.spotify.com/v1`;
+  public spotifyUserAccessToken = '';
+  public spotifyAccessToken = '';
+  public deezerBaseUrl = `https://api.deezer.com`;
+  public deezerAccessToken = '';
   public antiCSRFState: string;
   private readonly _client: AxiosInstance;
 
@@ -34,23 +36,30 @@ class AuthService {
         const accessToken = response.data.access_token;
         const expiry = response.data.expires_in;
 
-        this.spotifyAppAccessToken = accessToken
+        this.spotifyAccessToken = accessToken
 
         const dateOfExpiry = Date.now() + (expiry * 1000);
 
-        window.localStorage.setItem('sp_at_token', accessToken);
-        window.localStorage.setItem('sp_at_expiry', dateOfExpiry.toString());
+        window.localStorage.setItem('sp_at', accessToken);
+        window.localStorage.setItem('sp_at_xp', dateOfExpiry.toString());
       })
   }
 
-  checkToken(): boolean {
-    const spotifyToken = window.localStorage.getItem('sp_at_token') ?? '';
-    const tokenExpiry = window.localStorage.getItem('sp_at_expiry') ?? 0;
+  checkToken(tokenName: AccessToken): boolean {
+    const token = window.localStorage.getItem(tokenName) ?? '';
+    const tokenExpiry = window.localStorage.getItem(`${tokenName}_xp`) ?? 0;
 
-    this.spotifyAppAccessToken = spotifyToken;
+    if (tokenName === 'sp_at') {
+      this.spotifyAccessToken = token;
+    } else if (tokenName === 'sp_uat') {
+      this.spotifyUserAccessToken = token;
+    } else if (tokenName === 'dz_at') {
+      this.deezerAccessToken = token;
+    }
+
     const isExpired = Date.now() > Number(tokenExpiry)
 
-    return Boolean(spotifyToken && !isExpired);
+    return Boolean(token && !isExpired);
   }
 
   // Authorization Methods
@@ -65,7 +74,7 @@ class AuthService {
 
     const handleFocus = () => {
       window.removeEventListener('focus', handleFocus);
-      const recievedToken = localStorage.getItem('spotify_user_access_token') ?? '';
+      const recievedToken = localStorage.getItem('sp_uat') ?? '';
       const recievedState = localStorage.getItem('received_anti_csrf_state') ?? '';
 
       const decodedState = decodeURIComponent(recievedState);
@@ -73,7 +82,7 @@ class AuthService {
       if (decodedState !== this.antiCSRFState || recievedToken === '') {
         cb('Authorization request invalid. Kindly re-athorize');
       } else {
-        this.spotifyAccessToken = recievedToken;
+        this.spotifyUserAccessToken = recievedToken;
         cb(null)
       }
     }
@@ -90,7 +99,7 @@ class AuthService {
 
     const handleFocus = () => {
       window.removeEventListener('focus', handleFocus);
-      const recievedToken = localStorage.getItem('deezer_user_access_token') ?? '';
+      const recievedToken = localStorage.getItem('dz_at') ?? '';
 
       if (recievedToken === '') {
         cb('Authorization request invalid. Kindly re-athorize');
@@ -114,7 +123,7 @@ class AuthService {
   fetchSpotifyPlaylist(id: string): Promise<Playlist> {
     return this._client.get(`${CORS_PROXY_URL}/${this.spotifyBaseUrl}/playlists/${id}`, {
       headers: {
-        'Authorization': `Bearer ${this.spotifyAppAccessToken}`
+        'Authorization': `Bearer ${this.spotifyAccessToken}`
       }
     }).then((response) => {
       const { name, owner, tracks, images, external_urls } = response.data;
@@ -180,7 +189,7 @@ class AuthService {
         setTimeout(() => {
           this._client.get(url, {
             headers: {
-              Authorization: `Bearer ${this.spotifyAccessToken}`
+              Authorization: `Bearer ${this.spotifyUserAccessToken}`
             }
           }).then(res => resolve(res))
           .catch(e => reject(e))
@@ -202,7 +211,7 @@ class AuthService {
   
     return this._client.get(`${this.spotifyBaseUrl}/me`, {
       headers: {
-        Authorization: `Bearer ${this.spotifyAccessToken}`
+        Authorization: `Bearer ${this.spotifyUserAccessToken}`
       }
     }).then(response => {
       userId = response.data.id
@@ -210,7 +219,7 @@ class AuthService {
         name: title,
         description: 'Playlist created with love by tuneshift'
       }, { headers: {
-          Authorization: `Bearer ${this.spotifyAccessToken}`,
+          Authorization: `Bearer ${this.spotifyUserAccessToken}`,
           'Content-Type': 'application/json'
         }
       })
@@ -219,7 +228,7 @@ class AuthService {
       return this._client.post(`${this.spotifyBaseUrl}/playlists/${newlyCreatedPlaylistId}/tracks`, {
         uris: trackIDs
       }, { headers: {
-          Authorization: `Bearer ${this.spotifyAccessToken}`,
+          Authorization: `Bearer ${this.spotifyUserAccessToken}`,
           'Content-Type': 'application/json'
         }
       })
