@@ -23,6 +23,11 @@ function Main(props: {handleError: React.Dispatch<React.SetStateAction<string>>}
 	const [isFetching, setIsFetching] = useState<boolean>(false);
 
 	function authorizeSpotify() {
+		setPreConvert(true);
+		setDerivedPlaylist(initialPlaylist);
+		if (client.checkToken('sp_uat')) {
+			return convertPlaylist()
+		}
 		client.authorizeWithSpotify((err: string) => {
 			if(err) {
 				props.handleError(err);
@@ -33,6 +38,11 @@ function Main(props: {handleError: React.Dispatch<React.SetStateAction<string>>}
 	}
 
 	function authorizeDeezer() {
+		setPreConvert(true);
+		setDerivedPlaylist(initialPlaylist);
+		if (client.checkToken('dz_at')) {
+			return convertPlaylist()
+		}
 		client.authorizeWithDeezer((err: string) => {
 			if(err) {
 				props.handleError(err);

@@ -37,10 +37,17 @@ export function handleWithHashFragment() {
   const hashParams = window.location.hash.split(/#|&/i).slice(1)
   const recievedCredentials = getParamsObj(hashParams)
   if (recievedCredentials.state !== undefined) {
-    window.localStorage.setItem('spotify_user_access_token', recievedCredentials.access_token);
+    const expiry = recievedCredentials.expires_in;
+    const dateOfExpiry = Date.now() + (Number(expiry) * 1000);
+
+    window.localStorage.setItem('sp_uat', recievedCredentials.access_token);
+    window.localStorage.setItem('sp_uat_xp', dateOfExpiry.toString());
     window.localStorage.setItem('received_anti_csrf_state', recievedCredentials.state);
   } else {
-    window.localStorage.setItem('deezer_user_access_token', recievedCredentials.access_token);
+    const expiry = recievedCredentials.expires;
+    const dateOfExpiry = Date.now() + (Number(expiry) * 1000);
+    window.localStorage.setItem('dz_at', recievedCredentials.access_token);
+    window.localStorage.setItem('dz_at_xp', dateOfExpiry.toString());
   }
 }
 

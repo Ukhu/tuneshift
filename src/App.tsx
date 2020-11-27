@@ -19,7 +19,7 @@ function App(): JSX.Element {
       }
       window.close()
     } else {
-      const isSpotifyTokenAvailable: boolean = client.checkToken();
+      const isSpotifyTokenAvailable: boolean = client.checkToken('sp_at');
       if (!isSpotifyTokenAvailable) {
         client.authenticateSpotify()
           .catch((e) => {
