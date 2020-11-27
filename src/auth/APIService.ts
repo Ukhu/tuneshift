@@ -124,8 +124,10 @@ class AuthService {
   }
 
   // Regular Methods
-  fetchSpotifyPlaylist(id: string): Promise<Playlist> {
+  async fetchSpotifyPlaylist(id: string): Promise<Playlist> {
     if (this.playlistCache[id]) return Promise.resolve(this.playlistCache[id]);
+
+    if (!this.checkToken('sp_at')) await this.authenticateSpotify();
 
     return this._client.get(`${CORS_PROXY_URL}/${this.spotifyBaseUrl}/playlists/${id}`, {
       headers: {
