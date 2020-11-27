@@ -11,13 +11,17 @@ import {
   Playlist
 } from '../utils/constants';
 
+type AccessToken = 'sp_at' | 'sp_uat' | 'dz_at';
+
 class AuthService {
-  public spotifyBaseUrl: string = `https://api.spotify.com/v1`;
-  public spotifyAccessToken: string = '';
-  public spotifyAppAccessToken: string = '';
-  public deezerBaseUrl: string = `https://api.deezer.com`;
-  public deezerAccessToken: string = '';
+  public spotifyBaseUrl = `https://api.spotify.com/v1`;
+  public spotifyUserAccessToken = '';
+  public spotifyAccessToken = '';
+  public deezerBaseUrl = `https://api.deezer.com`;
+  public deezerAccessToken = '';
   public antiCSRFState: string;
+  public playlistCache: {[field: string]: Playlist};
+  public songsCache: {[field: string]: string};
   private readonly _client: AxiosInstance;
 
   constructor() {
@@ -25,6 +29,8 @@ class AuthService {
 
     });
     this.antiCSRFState = this.generateAntiCSRFSafe();
+    this.playlistCache = {};
+    this.songsCache = {};
   }
 
   // Initial Spotify auth method that calls the serverless function to obtain access_token
@@ -34,23 +40,30 @@ class AuthService {
         const accessToken = response.data.access_token;
         const expiry = response.data.expires_in;
 
-        this.spotifyAppAccessToken = accessToken
+        this.spotifyAccessToken = accessToken
 
         const dateOfExpiry = Date.now() + (expiry * 1000);
 
-        window.localStorage.setItem('sp_at_token', accessToken);
-        window.localStorage.setItem('sp_at_expiry', dateOfExpiry.toString());
+        window.localStorage.setItem('sp_at', accessToken);
+        window.localStorage.setItem('sp_at_xp', dateOfExpiry.toString());
       })
   }
 
-  checkToken(): boolean {
-    const spotifyToken = window.localStorage.getItem('sp_at_token') ?? '';
-    const tokenExpiry = window.localStorage.getItem('sp_at_expiry') ?? 0;
+  checkToken(tokenName: AccessToken): boolean {
+    const token = window.localStorage.getItem(tokenName) ?? '';
+    const tokenExpiry = window.localStorage.getItem(`${tokenName}_xp`) ?? 0;
 
-    this.spotifyAppAccessToken = spotifyToken;
+    if (tokenName === 'sp_at') {
+      this.spotifyAccessToken = token;
+    } else if (tokenName === 'sp_uat') {
+      this.spotifyUserAccessToken = token;
+    } else if (tokenName === 'dz_at') {
+      this.deezerAccessToken = token;
+    }
+
     const isExpired = Date.now() > Number(tokenExpiry)
 
-    return Boolean(spotifyToken && !isExpired);
+    return Boolean(token && !isExpired);
   }
 
   // Authorization Methods
@@ -65,7 +78,7 @@ class AuthService {
 
     const handleFocus = () => {
       window.removeEventListener('focus', handleFocus);
-      const recievedToken = localStorage.getItem('spotify_user_access_token') ?? '';
+      const recievedToken = localStorage.getItem('sp_uat') ?? '';
       const recievedState = localStorage.getItem('received_anti_csrf_state') ?? '';
 
       const decodedState = decodeURIComponent(recievedState);
@@ -73,7 +86,7 @@ class AuthService {
       if (decodedState !== this.antiCSRFState || recievedToken === '') {
         cb('Authorization request invalid. Kindly re-athorize');
       } else {
-        this.spotifyAccessToken = recievedToken;
+        this.spotifyUserAccessToken = recievedToken;
         cb(null)
       }
     }
@@ -90,7 +103,7 @@ class AuthService {
 
     const handleFocus = () => {
       window.removeEventListener('focus', handleFocus);
-      const recievedToken = localStorage.getItem('deezer_user_access_token') ?? '';
+      const recievedToken = localStorage.getItem('dz_at') ?? '';
 
       if (recievedToken === '') {
         cb('Authorization request invalid. Kindly re-athorize');
@@ -111,10 +124,14 @@ class AuthService {
   }
 
   // Regular Methods
-  fetchSpotifyPlaylist(id: string): Promise<Playlist> {
+  async fetchSpotifyPlaylist(id: string): Promise<Playlist> {
+    if (this.playlistCache[id]) return Promise.resolve(this.playlistCache[id]);
+
+    if (!this.checkToken('sp_at')) await this.authenticateSpotify();
+
     return this._client.get(`${CORS_PROXY_URL}/${this.spotifyBaseUrl}/playlists/${id}`, {
       headers: {
-        'Authorization': `Bearer ${this.spotifyAppAccessToken}`
+        'Authorization': `Bearer ${this.spotifyAccessToken}`
       }
     }).then((response) => {
       const { name, owner, tracks, images, external_urls } = response.data;
@@ -124,18 +141,21 @@ class AuthService {
         title: item.track.name
       }))
 
-      return ({
+      this.playlistCache[id] = {
         owner: owner.display_name,
         title: name,
         image: playlistImage,
         tracks: prunedTracks,
         providerName: 'spotify',
         link: external_urls.spotify
-      })
+      }
+      return this.playlistCache[id]
     })
   }
 
   fetchDeezerPlaylist(id: string): Promise<Playlist> {
+    if (this.playlistCache[id]) return Promise.resolve(this.playlistCache[id]);
+    
     return this._client.get(`${CORS_PROXY_URL}/${this.deezerBaseUrl}/playlist/${id}`, {
       headers: {
         'Authorization': `Bearer ${this.deezerAccessToken}`
@@ -147,44 +167,55 @@ class AuthService {
 				throw new Error(error.message)
 			}
 
-			const prunedTracks: Track[] = tracks.data.filter((track: any) => track.type === 'track').map((track: any) => ({
+			const prunedTracks: Track[] = tracks.data.slice(0, 100).filter((track: any) => track.type === 'track').map((track: any) => ({
         artist: track.artist.name,
         title: track.title
       }))
         
-      return ({
+      this.playlistCache[id] = {
         owner: creator.name,
-				title,
-				image: picture_medium,
-				tracks: prunedTracks,
+        title,
+        image: picture_medium,
+        tracks: prunedTracks,
         providerName: 'deezer',
         link
-      })
+      }
+      return this.playlistCache[id]
     })
   }
 
   searchSpotify(playlist: Playlist): Promise<string[]> {
-    const searchUrls = playlist.tracks.map((track, index) => {
-      if (index >= 50) return '';
+    const searchUrls = playlist.tracks.slice(0, 100).map((track) => {
       return `${this.spotifyBaseUrl}/search?${querystring.stringify({
         q: `track:"${track.title}" artist:${track.artist}`,
         type: 'track',
         offset: 0,
         limit: 1
       })}`
-    }).filter(url => url !== '');
- 
-    return Promise.all(searchUrls.map(url => this._client.get(url, {
-      headers: {
-        Authorization: `Bearer ${this.spotifyAccessToken}`
-      }
-    }))).then(response => {
-      const recievedTrackIDs: string[] = response.filter(
-        res => res.data.tracks.items.length > 0).map(
-          res => res.data.tracks.items[0].uri
-        )
-      
-      return recievedTrackIDs
+    })
+
+    return Promise.all(searchUrls.map((url, index) => {
+      const multiplier = Math.floor((index + 1) / 40);
+      const delay = multiplier * 5000;
+      return new Promise<string>((resolve, reject) => {
+        if(this.songsCache[url]) return resolve(this.songsCache[url]);
+        setTimeout(() => {
+          this._client.get(url, {
+            headers: {
+              Authorization: `Bearer ${this.spotifyUserAccessToken}`
+            }
+          }).then(res => {
+            const songs = res.data.tracks.items;
+            this.songsCache[url] = songs.length > 0 ? songs[0].uri : '';
+            resolve(this.songsCache[url]);
+          })
+          .catch(e => reject(e))
+        }, delay)
+      })
+    })).then(tracks => {
+      const recievedTrackIDs: string[] = tracks.filter(track => track !== '');
+      const idSet = new Set(recievedTrackIDs);
+      return Array.from(idSet)
     })
   }
 
@@ -194,7 +225,7 @@ class AuthService {
   
     return this._client.get(`${this.spotifyBaseUrl}/me`, {
       headers: {
-        Authorization: `Bearer ${this.spotifyAccessToken}`
+        Authorization: `Bearer ${this.spotifyUserAccessToken}`
       }
     }).then(response => {
       userId = response.data.id
@@ -202,7 +233,7 @@ class AuthService {
         name: title,
         description: 'Playlist created with love by tuneshift'
       }, { headers: {
-          Authorization: `Bearer ${this.spotifyAccessToken}`,
+          Authorization: `Bearer ${this.spotifyUserAccessToken}`,
           'Content-Type': 'application/json'
         }
       })
@@ -211,7 +242,7 @@ class AuthService {
       return this._client.post(`${this.spotifyBaseUrl}/playlists/${newlyCreatedPlaylistId}/tracks`, {
         uris: trackIDs
       }, { headers: {
-          Authorization: `Bearer ${this.spotifyAccessToken}`,
+          Authorization: `Bearer ${this.spotifyUserAccessToken}`,
           'Content-Type': 'application/json'
         }
       })
@@ -219,25 +250,36 @@ class AuthService {
   }
 
   searchDeezer(playlist: Playlist): Promise<string[]> {
-    const searchUrls = playlist.tracks.map((track, index) => {
-      if (index >= 50) return '';
+    const searchUrls = playlist.tracks.slice(0, 100).map((track) => {
       return `${CORS_PROXY_URL}/${this.deezerBaseUrl}/search/track?${querystring.stringify({
         q: `track:"${track.title}" artist:${track.artist}`,
         index: 0,
         limit: 1
       })}`
-    }).filter(url => url !== '');
+    });
  
-    return Promise.all(searchUrls.map(url => this._client.get(url, {
-      headers: {
-        Authorization: `Bearer ${this.deezerAccessToken}`
-      }
-    }))).then(response => {
-      const recievedTrackIDs: string[] = response.filter(
-        res => res.data.data?.length > 0).map(
-          res => res.data.data[0].id
-        )
-      return recievedTrackIDs
+    return Promise.all(searchUrls.map((url, index) => {
+      const multiplier = Math.floor((index + 1) / 40);
+      const delay = multiplier * 5000;
+      return new Promise<string>((resolve, reject) => {
+        if(this.songsCache[url]) return resolve(this.songsCache[url]);
+        setTimeout(() => {
+          this._client.get(url, {
+            headers: {
+              Authorization: `Bearer ${this.deezerAccessToken}`
+            }
+          }).then(res => {
+            const songs = res.data.data;
+            this.songsCache[url] = songs?.length > 0 ? songs[0].id : '';
+            resolve(this.songsCache[url])
+          })
+          .catch(e => reject(e))
+        }, delay)
+      })
+    })).then(tracks => {
+      const recievedTrackIDs: string[] = tracks.filter(track => track !== '');
+      const idSet = new Set(recievedTrackIDs);
+      return Array.from(idSet)
     })
   }
 
@@ -245,7 +287,7 @@ class AuthService {
     let newlyCreatedPlaylistId: string;
   
     return this._client.get(`${CORS_PROXY_URL}/${this.deezerBaseUrl}/user/me/playlists?${querystring.stringify({
-      title: `${title} - created by tuneshift`,
+      title: `${title} - created by TuneShift`,
       request_method: 'POST',
       access_token: this.deezerAccessToken
     })}`).then(response => {
