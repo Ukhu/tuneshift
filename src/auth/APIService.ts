@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosResponse } from 'axios';
+import axios, { AxiosInstance } from 'axios';
 import querystring from 'querystring';
 import cryptoRandomString from 'crypto-random-string';
 import { 
@@ -20,6 +20,8 @@ class AuthService {
   public deezerBaseUrl = `https://api.deezer.com`;
   public deezerAccessToken = '';
   public antiCSRFState: string;
+  public playlistCache: {[field: string]: Playlist};
+  public songsCache: {[field: string]: string};
   private readonly _client: AxiosInstance;
 
   constructor() {
@@ -27,6 +29,8 @@ class AuthService {
 
     });
     this.antiCSRFState = this.generateAntiCSRFSafe();
+    this.playlistCache = {};
+    this.songsCache = {};
   }
 
   // Initial Spotify auth method that calls the serverless function to obtain access_token
@@ -121,6 +125,8 @@ class AuthService {
 
   // Regular Methods
   fetchSpotifyPlaylist(id: string): Promise<Playlist> {
+    if (this.playlistCache[id]) return Promise.resolve(this.playlistCache[id]);
+
     return this._client.get(`${CORS_PROXY_URL}/${this.spotifyBaseUrl}/playlists/${id}`, {
       headers: {
         'Authorization': `Bearer ${this.spotifyAccessToken}`
@@ -133,18 +139,21 @@ class AuthService {
         title: item.track.name
       }))
 
-      return ({
+      this.playlistCache[id] = {
         owner: owner.display_name,
         title: name,
         image: playlistImage,
         tracks: prunedTracks,
         providerName: 'spotify',
         link: external_urls.spotify
-      })
+      }
+      return this.playlistCache[id]
     })
   }
 
   fetchDeezerPlaylist(id: string): Promise<Playlist> {
+    if (this.playlistCache[id]) return Promise.resolve(this.playlistCache[id]);
+    
     return this._client.get(`${CORS_PROXY_URL}/${this.deezerBaseUrl}/playlist/${id}`, {
       headers: {
         'Authorization': `Bearer ${this.deezerAccessToken}`
@@ -161,14 +170,15 @@ class AuthService {
         title: track.title
       }))
         
-      return ({
+      this.playlistCache[id] = {
         owner: creator.name,
-				title,
-				image: picture_medium,
-				tracks: prunedTracks,
+        title,
+        image: picture_medium,
+        tracks: prunedTracks,
         providerName: 'deezer',
         link
-      })
+      }
+      return this.playlistCache[id]
     })
   }
 
@@ -185,21 +195,23 @@ class AuthService {
     return Promise.all(searchUrls.map((url, index) => {
       const multiplier = Math.floor((index + 1) / 40);
       const delay = multiplier * 5000;
-      return new Promise<AxiosResponse<any>>((resolve, reject) => {
+      return new Promise<string>((resolve, reject) => {
+        if(this.songsCache[url]) return resolve(this.songsCache[url]);
         setTimeout(() => {
           this._client.get(url, {
             headers: {
               Authorization: `Bearer ${this.spotifyUserAccessToken}`
             }
-          }).then(res => resolve(res))
+          }).then(res => {
+            const songs = res.data.tracks.items;
+            this.songsCache[url] = songs.length > 0 ? songs[0].uri : '';
+            resolve(this.songsCache[url]);
+          })
           .catch(e => reject(e))
         }, delay)
       })
-    })).then(response => {
-      const recievedTrackIDs: string[] = response.filter(
-        res => res.data.tracks.items.length > 0).map(
-          res => res.data.tracks.items[0].uri
-        )
+    })).then(tracks => {
+      const recievedTrackIDs: string[] = tracks.filter(track => track !== '');
       const idSet = new Set(recievedTrackIDs);
       return Array.from(idSet)
     })
@@ -247,21 +259,23 @@ class AuthService {
     return Promise.all(searchUrls.map((url, index) => {
       const multiplier = Math.floor((index + 1) / 40);
       const delay = multiplier * 5000;
-      return new Promise<AxiosResponse<any>>((resolve, reject) => {
+      return new Promise<string>((resolve, reject) => {
+        if(this.songsCache[url]) return resolve(this.songsCache[url]);
         setTimeout(() => {
           this._client.get(url, {
             headers: {
               Authorization: `Bearer ${this.deezerAccessToken}`
             }
-          }).then(res => resolve(res))
+          }).then(res => {
+            const songs = res.data.data;
+            this.songsCache[url] = songs?.length > 0 ? songs[0].id : '';
+            resolve(this.songsCache[url])
+          })
           .catch(e => reject(e))
         }, delay)
       })
-    })).then(response => {
-      const recievedTrackIDs: string[] = response.filter(
-        res => res.data.data?.length > 0).map(
-          res => res.data.data[0].id
-        )
+    })).then(tracks => {
+      const recievedTrackIDs: string[] = tracks.filter(track => track !== '');
       const idSet = new Set(recievedTrackIDs);
       return Array.from(idSet)
     })
