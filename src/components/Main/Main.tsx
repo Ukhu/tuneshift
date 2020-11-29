@@ -120,24 +120,27 @@ function Main(props: {handleError: React.Dispatch<React.SetStateAction<string>>}
 		setPreConvert(false);
 		scrollHere('bottom');
 		if (playlist.providerName === 'deezer') {
-			client.searchSpotify(playlist).then((trackIDs: string[]) => {
-				return client.createAndPopulateSpotifyPlaylist(trackIDs, playlist.title);
-			}).then((playlist) => setDerivedPlaylist(playlist))
-			.catch(e => {
-				setPreConvert(true);
-				scrollHere('top');
-				if (e.response) return props.handleError(e.response.data.error.message)
-				props.handleError(e.message)
-			})
+			client.searchTracks(playlist)
+				.then((trackIDs: string[]) => {
+					return client.createAndPopulateSpotifyPlaylist(trackIDs, playlist.title);
+				}).then((playlist) => setDerivedPlaylist(playlist))
+				.catch(e => {
+					setPreConvert(true);
+					scrollHere('top');
+					if (e.response) return props.handleError(e.response.data.error.message)
+					props.handleError(e.message)
+				})
 		} else if (playlist.providerName === 'spotify') {
-			client.searchDeezer(playlist).then((trackIDs: string[]) => {
-				return client.createAndPopulateDeezerPlaylist(trackIDs, playlist.title);
-			}).then((playlist) => setDerivedPlaylist(playlist))
-			.catch(e => {
-				setPreConvert(true);
-				scrollHere('top');
-				props.handleError(e.message);
-			})
+			client.searchTracks(playlist)
+				.then((trackIDs: string[]) => {
+					return client.createAndPopulateDeezerPlaylist(trackIDs, playlist.title);
+				}).then((playlist) => setDerivedPlaylist(playlist))
+				.catch(e => {
+					setPreConvert(true);
+					scrollHere('top');
+					if (e.response) return props.handleError(e.response.data.error.message)
+					props.handleError(e.message);
+				})
 		}
 	}
 
