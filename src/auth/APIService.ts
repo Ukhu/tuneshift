@@ -23,6 +23,7 @@ class AuthService {
   public antiCSRFState: string;
   public playlistCache: {[field: string]: Playlist};
   public songsCache: {[field: string]: string};
+  public fetchPlaylistRetryCount = 2;
   private readonly _client: AxiosInstance;
 
   constructor() {
@@ -151,6 +152,13 @@ class AuthService {
         link: external_urls.spotify
       }
       return this.playlistCache[id]
+    }).catch(e => {
+      if (e.response && e.response.status === 500 && this.fetchPlaylistRetryCount !== 0) {
+        this.fetchPlaylistRetryCount -= 1
+        return this.fetchSpotifyPlaylist(id)
+      }
+      if (e.response) throw new Error(e.response.data.error.message)
+      throw new Error(e)
     })
   }
 
