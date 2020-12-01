@@ -5,6 +5,7 @@ import {
   SPOTIFY_CLIENT_ID,
   CALLBACK_URL,
   SPOTIFY_AUTH_FUNCTION_URL,
+  SEARCH_PLAYLIST_FUNCTION_URL,
   DEEZER_CLIENT_ID,
   CORS_PROXY_URL,
   Track,
@@ -22,6 +23,7 @@ class AuthService {
   public antiCSRFState: string;
   public playlistCache: {[field: string]: Playlist};
   public songsCache: {[field: string]: string};
+  public fetchPlaylistRetryCount = 2;
   private readonly _client: AxiosInstance;
 
   constructor() {
@@ -150,6 +152,13 @@ class AuthService {
         link: external_urls.spotify
       }
       return this.playlistCache[id]
+    }).catch(e => {
+      if (e.response && e.response.status === 500 && this.fetchPlaylistRetryCount !== 0) {
+        this.fetchPlaylistRetryCount -= 1
+        return this.fetchSpotifyPlaylist(id)
+      }
+      if (e.response) throw new Error(e.response.data.error.message)
+      throw new Error(e)
     })
   }
 
@@ -184,38 +193,17 @@ class AuthService {
     })
   }
 
-  searchSpotify(playlist: Playlist): Promise<string[]> {
-    const searchUrls = playlist.tracks.slice(0, 100).map((track) => {
-      return `${this.spotifyBaseUrl}/search?${querystring.stringify({
-        q: `track:"${track.title}" artist:${track.artist}`,
-        type: 'track',
-        offset: 0,
-        limit: 1
-      })}`
-    })
-
-    return Promise.all(searchUrls.map((url, index) => {
-      const multiplier = Math.floor((index + 1) / 40);
-      const delay = multiplier * 5000;
-      return new Promise<string>((resolve, reject) => {
-        if(this.songsCache[url]) return resolve(this.songsCache[url]);
-        setTimeout(() => {
-          this._client.get(url, {
-            headers: {
-              Authorization: `Bearer ${this.spotifyUserAccessToken}`
-            }
-          }).then(res => {
-            const songs = res.data.tracks.items;
-            this.songsCache[url] = songs.length > 0 ? songs[0].uri : '';
-            resolve(this.songsCache[url]);
-          })
-          .catch(e => reject(e))
-        }, delay)
-      })
-    })).then(tracks => {
-      const recievedTrackIDs: string[] = tracks.filter(track => track !== '');
-      const idSet = new Set(recievedTrackIDs);
-      return Array.from(idSet)
+  searchTracks(playlist: Playlist): Promise<string[]> {
+    const {providerName, tracks} = playlist;
+    return this._client.post(SEARCH_PLAYLIST_FUNCTION_URL, {
+      provider: providerName,
+      tracks
+    }, {
+      headers: {
+        Authorization: `Bearer ${providerName === 'deezer' ? this.spotifyUserAccessToken : this.deezerAccessToken}`
+      }
+    }).then(res => {
+      return res.data.trackIDs;
     })
   }
 
@@ -247,40 +235,6 @@ class AuthService {
         }
       })
     }).then(() => this.fetchSpotifyPlaylist(newlyCreatedPlaylistId))
-  }
-
-  searchDeezer(playlist: Playlist): Promise<string[]> {
-    const searchUrls = playlist.tracks.slice(0, 100).map((track) => {
-      return `${CORS_PROXY_URL}/${this.deezerBaseUrl}/search/track?${querystring.stringify({
-        q: `track:"${track.title}" artist:${track.artist}`,
-        index: 0,
-        limit: 1
-      })}`
-    });
- 
-    return Promise.all(searchUrls.map((url, index) => {
-      const multiplier = Math.floor((index + 1) / 40);
-      const delay = multiplier * 5000;
-      return new Promise<string>((resolve, reject) => {
-        if(this.songsCache[url]) return resolve(this.songsCache[url]);
-        setTimeout(() => {
-          this._client.get(url, {
-            headers: {
-              Authorization: `Bearer ${this.deezerAccessToken}`
-            }
-          }).then(res => {
-            const songs = res.data.data;
-            this.songsCache[url] = songs?.length > 0 ? songs[0].id : '';
-            resolve(this.songsCache[url])
-          })
-          .catch(e => reject(e))
-        }, delay)
-      })
-    })).then(tracks => {
-      const recievedTrackIDs: string[] = tracks.filter(track => track !== '');
-      const idSet = new Set(recievedTrackIDs);
-      return Array.from(idSet)
-    })
   }
 
   createAndPopulateDeezerPlaylist(trackIDs: string[], title: string): Promise<Playlist> {
