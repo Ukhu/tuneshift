@@ -25,7 +25,7 @@ exports.handler = function(event, context, callback) {
 
   const token = event.headers.authorization
 
-  const { provider, tracks } = event.body;
+  const { provider, tracks } = JSON.parse(event.body);
 
   const BASE_URL = provider === 'deezer' ? SPOTIFY_SEARCH_URL : DEEZER_SEARCH_URL;
 
