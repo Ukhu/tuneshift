@@ -3,7 +3,7 @@ const querystring = require("querystring");
 
 const SPOTIFY_SEARCH_URL = process.env.SPOTIFY_SEARCH_URL;
 const DEEZER_SEARCH_URL = process.env.DEEZER_SEARCH_URL;
-const CORS_PROXY_URL = process.env.CORS_PROXY_URL;
+const CORS_PROXY_URL = process.env.REACT_APP_CORS_PROXY_URL;
 
 const headers = {
   "Access-Control-Allow-Origin": "*",
@@ -47,11 +47,13 @@ exports.handler = function(event, context, callback) {
       setTimeout(() => {
         axios.get(url, {
           headers: {
-            Authorization: token
+            Authorization: token,
+            Origin: `https://${event.headers.host}`
           }
         }).then(res => {
           const { data, tracks, error } = res.data;
           if (error) {
+            console.log(error);
             throw new Error(error.message)
           }
           const songs = provider === 'deezer' ? tracks.items: data;
@@ -76,6 +78,7 @@ exports.handler = function(event, context, callback) {
       headers
     })
   }).catch(e => {
+    console.log(e);
     callback(null, {
       statusCode: e.response ? e.response.status : 500,
       body: JSON.stringify({
